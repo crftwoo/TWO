@@ -1,321 +1,472 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<title>Plano de Corte – Painéis</title>
-<style>
-body{font-family:Arial;background:#0B0F14;color:#fff;padding:20px}
-textarea{background:#000;color:#fff;border:1px solid #333}
-.box{background:#111;padding:15px;margin-top:20px}
-button{margin-top:10px;padding:10px 20px;background:#9BE20D;border:none;font-weight:bold;cursor:pointer}
-.decision{margin-top:20px;padding:20px;background:#161b22;border:1px solid #333}
-table{border-collapse:collapse;width:100%;margin-top:20px}
-th,td{border:1px solid #333;padding:6px;text-align:center;font-size:14px}
-th{background:#111}
-.sub{font-size:12px;color:#BFC3C7}
-.copybox{background:#0B0F14;border:1px solid #333;padding:15px;margin-top:25px}
-.copybox textarea{width:100%;height:180px}
-select,input{background:#000;color:#fff;border:1px solid #333}
-.hidden{display:none}
-</style>
-</head>
-<body>
+  <meta charset="UTF-8">
+  <title>Plano de Corte – Painéis</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;800;900&display=swap');
 
-<h2>Plano de Corte – Painéis</h2>
-
-<!-- NOVA ETAPA: SOLICITAÇÃO DO CLIENTE -->
-<div class="box">
-<h3>Solicitação do cliente</h3>
-<textarea id="raw" rows="6" style="width:100%;" placeholder="Cole aqui o texto do cliente..."></textarea><br>
-<button onclick="interpretar()">Interpretar</button>
-</div>
-
-<!-- DEMANDA INTERPRETADA -->
-<div class="box hidden" id="editor">
-<h3>Demanda interpretada (editável)</h3>
-<table id="editTable">
-<tr>
-<th>Qtd</th><th>Comprimento (m)</th><th>Tipo</th><th>Espessura</th>
-</tr>
-</table>
-<button onclick="confirmar()">OK</button>
-</div>
-
-<!-- DEMANDA FINAL -->
-<div class="box hidden" id="boxDemanda">
-<h3>Demanda</h3>
-<textarea id="input" rows="8" style="width:100%;" readonly></textarea><br>
-<button onclick="processar()">Calcular</button>
-</div>
-
-<div id="decisao" class="hidden"></div>
-<div id="resultado" class="hidden"></div>
-<div id="resumo" class="hidden"></div>
-
-<script>
-/* ===== PRE-DEMANDA / PARSER ===== */
-const ESPESSURAS = {
-  PIR: ["70mm","100mm","120mm","150mm"],
-  EPS: ["50mm","100mm","150mm","200mm"]
-};
-
-
-
-function interpretar(){
-  let linhas = raw.value.split(/\n+/).map(l=>l.trim()).filter(l=>l);
-  let table = document.getElementById("editTable");
-  table.innerHTML = "<tr><th>Qtd</th><th>Comprimento (m)</th><th>Tipo</th><th>Espessura</th></tr>";
-
-  // ===== PASSO 1: detectar contexto global =====
-  let tiposEncontrados = new Set();
-  let espEncontradas = new Set();
-
-  linhas.forEach(l=>{
-    let ll = l.toLowerCase();
-    if(ll.includes("pir")) tiposEncontrados.add("PIR");
-    if(ll.includes("eps")) tiposEncontrados.add("EPS");
-    let em = ll.match(/(\d+)\s*mm/);
-    if(em) espEncontradas.add(em[1]+"mm");
-  });
-
-  let globalTipo = tiposEncontrados.size===1 ? [...tiposEncontrados][0] : "";
-  let globalEsp  = espEncontradas.size===1 ? [...espEncontradas][0] : "";
-
-  let ctxTipo = globalTipo;
-  let ctxEsp  = globalEsp;
-
-  // ===== PASSO 2: leitura sequencial =====
-  linhas.forEach(l=>{
-    let ll = l.toLowerCase();
-
-    // atualizar contexto local se explícito
-    if(ll.includes("pir")) ctxTipo = "PIR";
-    if(ll.includes("eps")) ctxTipo = "EPS";
-
-    let em = ll.match(/(\d+)\s*mm/);
-    if(em){
-      ctxEsp = em[1]+"mm";
-      if(ESPESSURAS.PIR.includes(ctxEsp) && !ESPESSURAS.EPS.includes(ctxEsp)) ctxTipo="PIR";
-      if(ESPESSURAS.EPS.includes(ctxEsp) && !ESPESSURAS.PIR.includes(ctxEsp)) ctxTipo="EPS";
+    :root {
+      --green: #9BE20D;
+      --border: #1A1F24;
+      --bg-color: #000000;
+      --card-bg: #0B0F14;
     }
 
-    let qtdMatch = ll.match(/^(\d+)/);
-    let qtd = qtdMatch ? fmtQtd(qtdMatch[1]) : "";
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg-color);
+      color: #fff;
+      padding: 20px;
+      margin: 0;
+    }
 
-    let compMatch = ll.match(/(\d+[\.,]\d+)\s*m?/);
-    let comp = compMatch ? compMatch[1].replace(",",".") : "";
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
 
-    if(!qtd && !comp) return;
+    h2 {
+      font-weight: 900;
+      margin: 20px 0;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      font-size: 28px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
 
-    let tipoFinal = ctxTipo || globalTipo || "";
-    let espFinal  = ctxEsp  || globalEsp  || "";
+    h3 {
+      font-weight: 800;
+      margin-top: 0;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+    }
 
-    let tr = document.createElement("tr");
-    tr.innerHTML = `
+    textarea {
+      background: var(--bg-color);
+      color: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      box-sizing: border-box;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus {
+      border-color: var(--green);
+    }
+
+    .box {
+      background: var(--card-bg);
+      padding: 24px;
+      margin-top: 20px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    button {
+      margin-top: 16px;
+      padding: 12px 24px;
+      background: transparent;
+      color: #fff;
+      border: 1px solid var(--border);
+      font-weight: 800;
+      text-transform: uppercase;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: var(--green);
+      color: #000;
+      border-color: var(--green);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(155, 226, 13, 0.3);
+    }
+
+    .decision {
+      margin-top: 20px;
+      padding: 24px;
+      background: #11151c;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--border);
+      padding: 12px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    th {
+      background: transparent;
+      color: #BFC3C7;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .sub {
+      font-size: 12px;
+      color: #BFC3C7;
+      margin-top: 4px;
+    }
+
+    .copybox {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 24px;
+      margin-top: 25px;
+      border-radius: 8px;
+    }
+
+    .copybox textarea {
+      width: 100%;
+      height: 180px;
+    }
+
+    select,
+    input {
+      background: var(--bg-color);
+      color: #fff;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 600;
+      outline: none;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--green);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h2>Plano de Corte – Painéis</h2>
+
+    <!-- NOVA ETAPA: SOLICITAÇÃO DO CLIENTE -->
+    <div class="box">
+      <h3>Solicitação do cliente</h3>
+      <textarea id="raw" rows="6" style="width:100%;" placeholder="Cole aqui o texto do cliente..."></textarea><br>
+      <button onclick="interpretar()">Interpretar</button>
+    </div>
+
+    <!-- DEMANDA INTERPRETADA -->
+    <div class="box hidden" id="editor">
+      <h3>Demanda interpretada (editável)</h3>
+      <table id="editTable">
+        <tr>
+          <th>Qtd</th>
+          <th>Comprimento (m)</th>
+          <th>Tipo</th>
+          <th>Espessura</th>
+        </tr>
+      </table>
+      <button onclick="confirmar()">OK</button>
+    </div>
+
+    <!-- DEMANDA FINAL -->
+    <div class="box hidden" id="boxDemanda">
+      <h3>Demanda</h3>
+      <textarea id="input" rows="8" style="width:100%;" readonly></textarea><br>
+      <button onclick="processar()">Calcular</button>
+    </div>
+
+    <div id="decisao" class="hidden"></div>
+    <div id="resultado" class="hidden"></div>
+    <div id="resumo" class="hidden"></div>
+  </div>
+
+  <script>
+    /* ===== PRE-DEMANDA / PARSER ===== */
+    const ESPESSURAS = {
+      PIR: ["70mm", "100mm", "120mm", "150mm"],
+      EPS: ["50mm", "100mm", "150mm", "200mm"]
+    };
+
+
+
+    function interpretar() {
+      let linhas = raw.value.split(/\n+/).map(l => l.trim()).filter(l => l);
+      let table = document.getElementById("editTable");
+      table.innerHTML = "<tr><th>Qtd</th><th>Comprimento (m)</th><th>Tipo</th><th>Espessura</th></tr>";
+
+      // ===== PASSO 1: detectar contexto global =====
+      let tiposEncontrados = new Set();
+      let espEncontradas = new Set();
+
+      linhas.forEach(l => {
+        let ll = l.toLowerCase();
+        if (ll.includes("pir")) tiposEncontrados.add("PIR");
+        if (ll.includes("eps")) tiposEncontrados.add("EPS");
+        let em = ll.match(/(\d+)\s*mm/);
+        if (em) espEncontradas.add(em[1] + "mm");
+      });
+
+      let globalTipo = tiposEncontrados.size === 1 ? [...tiposEncontrados][0] : "";
+      let globalEsp = espEncontradas.size === 1 ? [...espEncontradas][0] : "";
+
+      let ctxTipo = globalTipo;
+      let ctxEsp = globalEsp;
+
+      // ===== PASSO 2: leitura sequencial =====
+      linhas.forEach(l => {
+        let ll = l.toLowerCase();
+
+        // atualizar contexto local se explícito
+        if (ll.includes("pir")) ctxTipo = "PIR";
+        if (ll.includes("eps")) ctxTipo = "EPS";
+
+        let em = ll.match(/(\d+)\s*mm/);
+        if (em) {
+          ctxEsp = em[1] + "mm";
+          if (ESPESSURAS.PIR.includes(ctxEsp) && !ESPESSURAS.EPS.includes(ctxEsp)) ctxTipo = "PIR";
+          if (ESPESSURAS.EPS.includes(ctxEsp) && !ESPESSURAS.PIR.includes(ctxEsp)) ctxTipo = "EPS";
+        }
+
+        let qtdMatch = ll.match(/^(\d+)/);
+        let qtd = qtdMatch ? fmtQtd(qtdMatch[1]) : "";
+
+        let compMatch = ll.match(/(\d+[\.,]\d+)\s*m?/);
+        let comp = compMatch ? compMatch[1].replace(",", ".") : "";
+
+        if (!qtd && !comp) return;
+
+        let tipoFinal = ctxTipo || globalTipo || "";
+        let espFinal = ctxEsp || globalEsp || "";
+
+        let tr = document.createElement("tr");
+        tr.innerHTML = `
       <td><input value="${qtd}" size="3"></td>
       <td><input value="${comp}" size="4"></td>
       <td>
         <select onchange="ajustarEsp(this)">
           <option value=""></option>
-          <option ${tipoFinal==="PIR"?"selected":""}>PIR</option>
-          <option ${tipoFinal==="EPS"?"selected":""}>EPS</option>
+          <option ${tipoFinal === "PIR" ? "selected" : ""}>PIR</option>
+          <option ${tipoFinal === "EPS" ? "selected" : ""}>EPS</option>
         </select>
       </td>
       <td>
         <select>
-          ${(tipoFinal?ESPESSURAS[tipoFinal]:[]).map(e=>`<option ${e===espFinal?"selected":""}>${e}</option>`).join("")}
+          ${(tipoFinal ? ESPESSURAS[tipoFinal] : []).map(e => `<option ${e === espFinal ? "selected" : ""}>${e}</option>`).join("")}
         </select>
       </td>`;
-    table.appendChild(tr);
-  });
+        table.appendChild(tr);
+      });
 
-  editor.classList.remove("hidden"); normalizeAllLengths();
-}
-
-
-
-function ajustarEsp(sel){
-  let tipo = sel.value;
-  let espSel = sel.parentElement.nextElementSibling.querySelector("select");
-  espSel.innerHTML="";
-  if(!tipo) return;
-  ESPESSURAS[tipo].forEach(e=>{
-    let o=document.createElement("option");
-    o.textContent=e;
-    espSel.appendChild(o);
-  });
-}
-
-function confirmar(){
-  let out="";
-  document.querySelectorAll("#editTable tr").forEach((tr,i)=>{
-    if(i===0) return;
-    let tds = tr.querySelectorAll("td");
-    let qtd = tds[0].querySelector("input").value;
-    let comp = tds[1].querySelector("input").value;
-    let tipo = tds[2].querySelector("select").value;
-    let esp = tds[3].querySelector("select").value;
-    if(qtd && comp && tipo && esp){
-      out += `${qtd} PAINEL | ${comp} | ${tipo} | ${esp}\n`;
+      editor.classList.remove("hidden"); normalizeAllLengths();
     }
-  });
-  input.value = out.trim();
-  editor.classList.add("hidden"); document.getElementById("boxDemanda").classList.remove("hidden");
-}
 
-/* ===== MOTOR ORIGINAL DE CÁLCULO (INALTERADO) ===== */
-const PAINEL_PADRAO = 12.05;
-const PAINEIS_ALT = [2.4,3,4,6];
-const LIMITE_SOBRA = 1.5;
 
-let grupos={}, planos={}, ordem=[], decisoes={}, idx=0;
 
-function parseDemanda(txt){
-  txt.split("\n").forEach(l=>{
-    let m=l.match(/(\d+)\s*PAINEL.*?(\d+[\.,]\d+).*?(PIR|EPS).*?(\d+mm)/i);
-    if(m){
-      let qtd=parseInt(m[1]);
-      let tam=parseFloat(m[2].replace(",", "."));
-      let chave=m[3].toUpperCase()+" "+m[4];
-      if(!grupos[chave]) grupos[chave]=[];
-      for(let i=0;i<qtd;i++) grupos[chave].push(tam);
+    function ajustarEsp(sel) {
+      let tipo = sel.value;
+      let espSel = sel.parentElement.nextElementSibling.querySelector("select");
+      espSel.innerHTML = "";
+      if (!tipo) return;
+      ESPESSURAS[tipo].forEach(e => {
+        let o = document.createElement("option");
+        o.textContent = e;
+        espSel.appendChild(o);
+      });
     }
-  });
-}
 
-function otimizar(pecas){
-  let itens=[...pecas].sort((a,b)=>b-a);
-  let paineis=[];
+    function confirmar() {
+      let out = "";
+      document.querySelectorAll("#editTable tr").forEach((tr, i) => {
+        if (i === 0) return;
+        let tds = tr.querySelectorAll("td");
+        let qtd = tds[0].querySelector("input").value;
+        let comp = tds[1].querySelector("input").value;
+        let tipo = tds[2].querySelector("select").value;
+        let esp = tds[3].querySelector("select").value;
+        if (qtd && comp && tipo && esp) {
+          out += `${qtd} PAINEL | ${comp} | ${tipo} | ${esp}\n`;
+        }
+      });
+      input.value = out.trim();
+      editor.classList.add("hidden"); document.getElementById("boxDemanda").classList.remove("hidden");
+    }
 
-  itens.forEach(p=>{
-    let melhor=null, menor=Infinity;
-    paineis.forEach(panel=>{
-      let usado=panel.reduce((s,v)=>s+v,0);
-      let sobra=PAINEL_PADRAO-(usado+p);
-      if(sobra>=0 && sobra<menor){menor=sobra; melhor=panel;}
-    });
-    if(melhor) melhor.push(p);
-    else paineis.push([p]);
-  });
+    /* ===== MOTOR ORIGINAL DE CÁLCULO (INALTERADO) ===== */
+    const PAINEL_PADRAO = 12.05;
+    const PAINEIS_ALT = [2.4, 3, 4, 6];
+    const LIMITE_SOBRA = 1.5;
 
-  paineis.sort((a,b)=>
-    (PAINEL_PADRAO-a.reduce((s,v)=>s+v,0))-
-    (PAINEL_PADRAO-b.reduce((s,v)=>s+v,0))
-  );
+    let grupos = {}, planos = {}, ordem = [], decisoes = {}, idx = 0;
 
-  return paineis;
-}
+    function parseDemanda(txt) {
+      txt.split("\n").forEach(l => {
+        let m = l.match(/(\d+)\s*PAINEL.*?(\d+[\.,]\d+).*?(PIR|EPS).*?(\d+mm)/i);
+        if (m) {
+          let qtd = parseInt(m[1]);
+          let tam = parseFloat(m[2].replace(",", "."));
+          let chave = m[3].toUpperCase() + " " + m[4];
+          if (!grupos[chave]) grupos[chave] = [];
+          for (let i = 0; i < qtd; i++) grupos[chave].push(tam);
+        }
+      });
+    }
 
-function processar(){ document.getElementById("decisao").classList.remove("hidden"); document.getElementById("resultado").classList.remove("hidden"); document.getElementById("resumo").classList.remove("hidden");
-  grupos={}; planos={}; ordem=[]; decisoes={}; idx=0;
-  decisao.innerHTML=""; resultado.innerHTML=""; resumo.innerHTML="";
-  parseDemanda(input.value);
+    function otimizar(pecas) {
+      let itens = [...pecas].sort((a, b) => b - a);
+      let paineis = [];
 
-  Object.keys(grupos).forEach(chave=>{
-    let paineis=otimizar(grupos[chave]);
-    let ultimo=paineis.pop();
-    let sobra=PAINEL_PADRAO-ultimo.reduce((s,v)=>s+v,0);
-    planos[chave]={base:paineis, ultimo:ultimo};
-    if(sobra>LIMITE_SOBRA) ordem.push(chave);
-    else{ planos[chave].base.push(ultimo); decisoes[chave]="PADRAO"; }
-  });
+      itens.forEach(p => {
+        let melhor = null, menor = Infinity;
+        paineis.forEach(panel => {
+          let usado = panel.reduce((s, v) => s + v, 0);
+          let sobra = PAINEL_PADRAO - (usado + p);
+          if (sobra >= 0 && sobra < menor) { menor = sobra; melhor = panel; }
+        });
+        if (melhor) melhor.push(p);
+        else paineis.push([p]);
+      });
 
-  if(ordem.length) mostrarPergunta();
-  else mostrarTudo();
-}
+      paineis.sort((a, b) =>
+        (PAINEL_PADRAO - a.reduce((s, v) => s + v, 0)) -
+        (PAINEL_PADRAO - b.reduce((s, v) => s + v, 0))
+      );
 
-function mostrarPergunta(){
-  let chave=ordem[idx];
-  let ultimo=planos[chave].ultimo;
-  let maior=Math.max(...ultimo);
-  let alt=PAINEIS_ALT.find(p=>p>=maior);
-  let sobra=PAINEL_PADRAO-ultimo.reduce((s,v)=>s+v,0);
+      return paineis;
+    }
 
-  decisao.innerHTML=`<div class="decision">
+    function processar() {
+      document.getElementById("decisao").classList.remove("hidden"); document.getElementById("resultado").classList.remove("hidden"); document.getElementById("resumo").classList.remove("hidden");
+      grupos = {}; planos = {}; ordem = []; decisoes = {}; idx = 0;
+      decisao.innerHTML = ""; resultado.innerHTML = ""; resumo.innerHTML = "";
+      parseDemanda(input.value);
+
+      Object.keys(grupos).forEach(chave => {
+        let paineis = otimizar(grupos[chave]);
+        let ultimo = paineis.pop();
+        let sobra = PAINEL_PADRAO - ultimo.reduce((s, v) => s + v, 0);
+        planos[chave] = { base: paineis, ultimo: ultimo };
+        if (sobra > LIMITE_SOBRA) ordem.push(chave);
+        else { planos[chave].base.push(ultimo); decisoes[chave] = "PADRAO"; }
+      });
+
+      if (ordem.length) mostrarPergunta();
+      else mostrarTudo();
+    }
+
+    function mostrarPergunta() {
+      let chave = ordem[idx];
+      let ultimo = planos[chave].ultimo;
+      let maior = Math.max(...ultimo);
+      let alt = PAINEIS_ALT.find(p => p >= maior);
+      let sobra = PAINEL_PADRAO - ultimo.reduce((s, v) => s + v, 0);
+
+      decisao.innerHTML = `<div class="decision">
     <h3>Decisão – ${chave}</h3>
     <button onclick="decidir('PADRAO')">Painel 12,05 m (sobra ${sobra.toFixed(2)} m)</button><br><br>
-    <button onclick="decidir(${alt})">Painel ${alt.toFixed(2)} m (sobra ${(alt-maior).toFixed(2)} m)</button>
+    <button onclick="decidir(${alt})">Painel ${alt.toFixed(2)} m (sobra ${(alt - maior).toFixed(2)} m)</button>
   </div>`;
-}
+    }
 
-function decidir(op){
-  decisoes[ordem[idx]]=op;
-  idx++;
-  if(idx<ordem.length) mostrarPergunta();
-  else{ aplicarDecisoes(); decisao.innerHTML=""; mostrarTudo(); }
-}
+    function decidir(op) {
+      decisoes[ordem[idx]] = op;
+      idx++;
+      if (idx < ordem.length) mostrarPergunta();
+      else { aplicarDecisoes(); decisao.innerHTML = ""; mostrarTudo(); }
+    }
 
-function aplicarDecisoes(){
-  Object.keys(planos).forEach(chave=>{
-    let p=planos[chave];
-    if(decisoes[chave]==="PADRAO") p.base.push(p.ultimo);
-    else p.ultimo.forEach(c=>{
-      let a=[c]; a.tamAlt=decisoes[chave]; p.base.push(a);
-    });
-  });
-}
+    function aplicarDecisoes() {
+      Object.keys(planos).forEach(chave => {
+        let p = planos[chave];
+        if (decisoes[chave] === "PADRAO") p.base.push(p.ultimo);
+        else p.ultimo.forEach(c => {
+          let a = [c]; a.tamAlt = decisoes[chave]; p.base.push(a);
+        });
+      });
+    }
 
-function mostrarTudo(){
-  let out="";
-  let resumoTxt="Demanda a atender:\n"+input.value.trim()+"\n\nCortes com melhor aproveitamento para atender a demanda:\n";
+    function mostrarTudo() {
+      let out = "";
+      let resumoTxt = "Demanda a atender:\n" + input.value.trim() + "\n\nCortes com melhor aproveitamento para atender a demanda:\n";
 
-  Object.keys(planos).forEach(chave=>{
-    out+=`<h3>Plano de corte – ${chave}</h3>`;
-    let paineis=planos[chave].base;
-    let max=Math.max(...paineis.map(p=>p.length));
-    out+=`<table><tr><th rowspan="2">Painel</th><th colspan="${max}">Cortes (m)</th><th rowspan="2">Sobra</th></tr><tr>`;
-    for(let i=1;i<=max;i++) out+=`<th>Corte ${i}</th>`;
-    out+="</tr>";
+      Object.keys(planos).forEach(chave => {
+        out += `<h3>Plano de corte – ${chave}</h3>`;
+        let paineis = planos[chave].base;
+        let max = Math.max(...paineis.map(p => p.length));
+        out += `<table><tr><th rowspan="2">Painel</th><th colspan="${max}">Cortes (m)</th><th rowspan="2">Sobra</th></tr><tr>`;
+        for (let i = 1; i <= max; i++) out += `<th>Corte ${i}</th>`;
+        out += "</tr>";
 
-    let cont={};
-    paineis.forEach((p,i)=>{
-      let tam=p.tamAlt||PAINEL_PADRAO;
-      cont[tam]=(cont[tam]||0)+1;
-      let usado=p.reduce((s,v)=>s+v,0);
-      out+=`<tr><td>Painel ${i+1}<br><span class="sub">${tam.toFixed(2)} m</span></td>`;
-      for(let c=0;c<max;c++) out+=`<td>${p[c]?p[c].toFixed(2):""}</td>`;
-      out+=`<td>${(tam-usado).toFixed(2)}</td></tr>`;
-    });
-    out+="</table>";
+        let cont = {};
+        paineis.forEach((p, i) => {
+          let tam = p.tamAlt || PAINEL_PADRAO;
+          cont[tam] = (cont[tam] || 0) + 1;
+          let usado = p.reduce((s, v) => s + v, 0);
+          out += `<tr><td>Painel ${i + 1}<br><span class="sub">${tam.toFixed(2)} m</span></td>`;
+          for (let c = 0; c < max; c++) out += `<td>${p[c] ? p[c].toFixed(2) : ""}</td>`;
+          out += `<td>${(tam - usado).toFixed(2)}</td></tr>`;
+        });
+        out += "</table>";
 
-    Object.keys(cont).forEach(t=>{
-      resumoTxt+=`${cont[t]} pçs – Painel ${chave.split(" ")[0]} ${chave.split(" ")[1]} de ${Number(t).toFixed(2)} m\n`;
-    });
-    resumoTxt+="\n";
-  });
+        Object.keys(cont).forEach(t => {
+          resumoTxt += `${cont[t]} pçs – Painel ${chave.split(" ")[0]} ${chave.split(" ")[1]} de ${Number(t).toFixed(2)} m\n`;
+        });
+        resumoTxt += "\n";
+      });
 
-  resultado.innerHTML=out;
-  resumo.innerHTML=`<div class="copybox">
+      resultado.innerHTML = out;
+      resumo.innerHTML = `<div class="copybox">
     <h3>Resumo para envio</h3>
     <textarea id="txtResumo">${resumoTxt.trim()}</textarea><br>
     <button onclick="navigator.clipboard.writeText(txtResumo.value)">Copiar</button>
   </div>`;
-}
-
-function normalizeLen(v){
-  if(v===null || v===undefined || v==="") return "";
-  let n = parseFloat(String(v).replace(",", "."));
-  if(isNaN(n)) return "";
-  return n.toFixed(2);
-}
-
-function normalizeAllLengths(){
-  document.querySelectorAll('#editTable tr td:nth-child(2) input').forEach(inp=>{
-    if(inp && inp.value && !isNaN(parseFloat(inp.value.replace(',','.')))){
-      inp.value = normalizeLen(inp.value);
     }
-  });
-}
 
-function fmtQtd(v){
-  let n = parseInt(v,10);
-  if(isNaN(n)) return "";
-  return n < 10 ? "0"+n : String(n);
-}
-</script>
+    function normalizeLen(v) {
+      if (v === null || v === undefined || v === "") return "";
+      let n = parseFloat(String(v).replace(",", "."));
+      if (isNaN(n)) return "";
+      return n.toFixed(2);
+    }
+
+    function normalizeAllLengths() {
+      document.querySelectorAll('#editTable tr td:nth-child(2) input').forEach(inp => {
+        if (inp && inp.value && !isNaN(parseFloat(inp.value.replace(',', '.')))) {
+          inp.value = normalizeLen(inp.value);
+        }
+      });
+    }
+
+    function fmtQtd(v) {
+      let n = parseInt(v, 10);
+      if (isNaN(n)) return "";
+      return n < 10 ? "0" + n : String(n);
+    }
+  </script>
 
 
 
 
 </body>
+
 </html>

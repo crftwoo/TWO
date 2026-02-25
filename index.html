@@ -1,180 +1,228 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ferramentas Thiago</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ferramentas Thiago</title>
 
-<style>
-* { box-sizing: border-box; }
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;800;900&display=swap');
 
-body {
-    margin: 0;
-    background: #000;
-    color: #fff;
-    font-family: Arial, Helvetica, sans-serif;
-}
+    * {
+      box-sizing: border-box;
+    }
 
-.header {
-    display: flex;
-    align-items: center;
-    padding: 14px 20px;
-    border-bottom: 1px solid #111;
-}
+    :root {
+      --green: #9BE20D;
+      --border: #1A1F24;
+      --bg-color: #000000;
+      --card-bg: #0B0F14;
+    }
 
-.menu-icon-btn {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    border: 1px solid #222;
-    background: #060606;
-    color: #9aff00;
-    font-size: 11px;
-    font-weight: bold;
-    cursor: pointer;
-}
+    body {
+      margin: 0;
+      background: var(--bg-color);
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+    }
 
-.tabs {
-    display: none;
-    gap: 10px;
-    margin-left: 14px;
-}
+    .header {
+      display: flex;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
 
-.tab {
-    background: transparent;
-    color: #fff;
-    border: 1px solid #222;
-    padding: 8px 18px;
-    border-radius: 22px;
-    cursor: pointer;
-}
+    .menu-icon-btn {
+      padding: 12px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Montserrat', sans-serif;
+    }
 
-.tab.active {
-    border-color: #9aff00;
-    box-shadow: 0 0 12px rgba(154,255,0,0.6);
-}
+    .menu-icon-btn:hover {
+      border-color: #444;
+    }
 
-.menu {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 80px 20px;
-}
+    .tabs {
+      display: none;
+      gap: 10px;
+      margin-left: 14px;
+    }
 
-.menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, 250px);
-    justify-content: center;
-    gap: 48px;
-    width: 100%;
-}
+    .tab {
+      background: transparent;
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 800;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+      font-family: 'Montserrat', sans-serif;
+    }
 
-.menu-item {
-    width: 250px;
-    height: 250px;
-    background: radial-gradient(circle at top, #0f0f0f, #000);
-    border: 1px solid #111;
-    border-radius: 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-}
+    .tab:hover {
+      border-color: #444;
+    }
 
-.menu-item-icon {
-    width: 72px;
-    height: 72px;
-    border-radius: 20px;
-    background: #0b0b0b;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 34px;
-    color: #9aff00;
-    margin-bottom: 18px;
-}
+    .tab.active {
+      border-color: var(--green);
+      background: var(--green);
+      color: #000;
+      box-shadow: 0 8px 15px rgba(155, 226, 13, 0.3);
+      transform: translateY(-2px);
+    }
 
-.menu-item-title {
-    text-align: center;
-}
+    .menu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 80px 20px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
 
-.content {
-    width: 100%;
-    height: calc(100vh - 62px);
-    display: none;
-}
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      justify-content: center;
+      gap: 20px;
+      width: 100%;
+    }
 
-iframe {
-    width: 100%;
-    height: 100%;
-    border: none;
-    background: #000;
-}
+    .menu-item {
+      height: 220px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
 
-.menu-title {
-    font-size: 26px;
-    margin-bottom: 64px;
-}
-</style>
+    .menu-item:hover {
+      transform: translateY(-4px);
+      border-color: #333;
+    }
+
+    .menu-item-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 12px;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      color: var(--green);
+      margin-bottom: 18px;
+      transition: transform 0.3s ease;
+    }
+
+    .menu-item:hover .menu-item-icon {
+      transform: scale(1.1);
+    }
+
+    .menu-item-title {
+      text-align: center;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+    }
+
+    .content {
+      width: 100%;
+      height: calc(100vh - 62px);
+      display: none;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      background: var(--bg-color);
+    }
+
+    .menu-title {
+      font-size: 36px;
+      font-weight: 900;
+      margin-bottom: 64px;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="header">
-  <button class="menu-icon-btn" onclick="voltarMenu()">MENU</button>
-  <div class="tabs" id="tabs"></div>
-</div>
+  <div class="header">
+    <button class="menu-icon-btn" onclick="voltarMenu()">MENU</button>
+    <div class="tabs" id="tabs"></div>
+  </div>
 
-<div class="menu" id="menu">
-  <div class="menu-title">Ferramentas – Thiago</div>
-  <div class="menu-grid" id="menuGrid"></div>
-</div>
+  <div class="menu" id="menu">
+    <div class="menu-title">Ferramentas – Thiago</div>
+    <div class="menu-grid" id="menuGrid"></div>
+  </div>
 
-<div class="content" id="content">
-  <iframe id="frame"></iframe>
-</div>
+  <div class="content" id="content">
+    <iframe id="frame"></iframe>
+  </div>
 
-<script>
-const ferramentas = [
-  { nome: "Comparador de Ar", arquivo: "comparador-ar.html", icone: "⇄" },
-  { nome: "Precificação AR", arquivo: "precificacao-ar.html", icone: "$" },
-  { nome: "Plano de Corte – Painéis", arquivo: "plano-corte.html", icone: "✂️" },
-  { nome: "Itens com Quantidade", arquivo: "itens-quantidade.html", icone: "📋" }
-];
+  <script>
+    const ferramentas = [
+      { nome: "Comparador de Ar", arquivo: "comparador-ar.html", icone: "⇄" },
+      { nome: "Precificação AR", arquivo: "precificacao-ar.html", icone: "$" },
+      { nome: "Plano de Corte – Painéis", arquivo: "plano-corte.html", icone: "✂️" },
+      { nome: "Itens com Quantidade", arquivo: "itens-quantidade.html", icone: "📋" }
+    ];
 
-const tabs = document.getElementById("tabs");
-const menuGrid = document.getElementById("menuGrid");
+    const tabs = document.getElementById("tabs");
+    const menuGrid = document.getElementById("menuGrid");
 
-ferramentas.forEach(f => {
-  const tab = document.createElement("button");
-  tab.className = "tab";
-  tab.textContent = f.nome;
-  tab.onclick = () => abrirFerramenta(tab, f.arquivo);
-  tabs.appendChild(tab);
+    ferramentas.forEach(f => {
+      const tab = document.createElement("button");
+      tab.className = "tab";
+      tab.textContent = f.nome;
+      tab.onclick = () => abrirFerramenta(tab, f.arquivo);
+      tabs.appendChild(tab);
 
-  const card = document.createElement("div");
-  card.className = "menu-item";
-  card.onclick = () => abrirFerramenta(tab, f.arquivo);
-  card.innerHTML = `<div class="menu-item-icon">${f.icone}</div><div class="menu-item-title">${f.nome}</div>`;
-  menuGrid.appendChild(card);
-});
+      const card = document.createElement("div");
+      card.className = "menu-item";
+      card.onclick = () => abrirFerramenta(tab, f.arquivo);
+      card.innerHTML = `<div class="menu-item-icon">${f.icone}</div><div class="menu-item-title">${f.nome}</div>`;
+      menuGrid.appendChild(card);
+    });
 
-function abrirFerramenta(botao, arquivo){
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  botao.classList.add("active");
-  menu.style.display="none";
-  content.style.display="block";
-  tabs.style.display="flex";
-  frame.src = arquivo;
-}
+    function abrirFerramenta(botao, arquivo) {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      botao.classList.add("active");
+      menu.style.display = "none";
+      content.style.display = "block";
+      tabs.style.display = "flex";
+      frame.src = arquivo;
+    }
 
-function voltarMenu(){
-  frame.src="";
-  content.style.display="none";
-  menu.style.display="flex";
-  tabs.style.display="none";
-}
-</script>
+    function voltarMenu() {
+      frame.src = "";
+      content.style.display = "none";
+      menu.style.display = "flex";
+      tabs.style.display = "none";
+    }
+  </script>
 </body>
+
 </html>

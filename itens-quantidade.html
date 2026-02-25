@@ -1,258 +1,275 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Filtro de Códigos</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Filtro de Códigos</title>
 
-<style>
-* { 
-  box-sizing: border-box; 
-  margin: 0;
-  padding: 0;
-}
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;800;900&display=swap');
 
-:root {
-  --green: #9aff00;
-  --green-hover: #A6E22E;
-  --bg-primary: #000;
-  --bg-secondary: #0B0F14;
-  --bg-card: #111;
-  --border: #222;
-  --text-primary: #fff;
-  --text-secondary: #BFC3C7;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  padding: 40px 20px;
-}
+    :root {
+      --green: #9BE20D;
+      --border: #1A1F24;
+      --bg-color: #000000;
+      --card-bg: #0B0F14;
+      --text-primary: #fff;
+      --text-secondary: #BFC3C7;
+    }
 
-.container {
-  max-width: 900px;
-  margin: 0 auto;
-  animation: fadeIn 0.6s ease;
-}
+    body {
+      margin: 0;
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      padding: 40px 20px;
+    }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      animation: fadeIn 0.6s ease;
+    }
 
-h1 {
-  font-size: 48px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  letter-spacing: -1px;
-  background: linear-gradient(180deg, var(--text-primary) 0%, var(--text-secondary) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
 
-.sub {
-  font-size: 21px;
-  color: var(--text-secondary);
-  margin-bottom: 40px;
-  font-weight: 400;
-}
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-textarea {
-  width: 100%;
-  height: 280px;
-  background: var(--bg-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
-  padding: 20px;
-  font-size: 15px;
-  border-radius: 16px;
-  font-family: inherit;
-  resize: vertical;
-  transition: all 0.2s ease;
-}
+    h1 {
+      font-size: 36px;
+      font-weight: 900;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+      color: var(--text-primary);
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
 
-textarea:focus {
-  outline: none;
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px rgba(154, 255, 0, 0.1);
-}
+    .sub {
+      font-size: 16px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      font-weight: 600;
+    }
 
-textarea::placeholder {
-  color: var(--text-secondary);
-}
+    textarea {
+      width: 100%;
+      height: 280px;
+      background: var(--card-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      padding: 20px;
+      font-size: 15px;
+      border-radius: 8px;
+      font-family: 'Montserrat', sans-serif;
+      resize: vertical;
+      transition: all 0.2s ease;
+      outline: none;
+    }
 
-.button-group {
-  display: flex;
-  gap: 12px;
-  margin-top: 24px;
-  flex-wrap: wrap;
-}
+    textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(155, 226, 13, 0.1);
+    }
 
-button {
-  padding: 14px 28px;
-  border: none;
-  border-radius: 12px;
-  font-weight: 600;
-  font-size: 15px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  font-family: inherit;
-}
+    textarea::placeholder {
+      color: #5f6b7a;
+    }
 
-.btn {
-  background: var(--green);
-  color: var(--bg-primary);
-}
+    .button-group {
+      display: flex;
+      gap: 16px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
 
-.btn:hover {
-  background: var(--green-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(154, 255, 0, 0.3);
-}
+    button {
+      padding: 16px 32px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-primary);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: 'Montserrat', sans-serif;
+      text-transform: uppercase;
+    }
 
-.btn:active {
-  transform: translateY(0);
-}
+    button:hover {
+      border-color: #444;
+    }
 
-.result {
-  margin-top: 32px;
-  background: var(--bg-secondary);
-  padding: 24px;
-  border-radius: 16px;
-  min-height: 180px;
-  white-space: pre-wrap;
-  font-size: 15px;
-  line-height: 1.6;
-  border: 1px solid var(--border);
-  transition: all 0.2s ease;
-}
+    .btn {
+      background: var(--green);
+      color: #000;
+      border-color: var(--green);
+    }
 
-.result:empty {
-  display: none;
-}
+    .btn:hover {
+      background: var(--green);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(155, 226, 13, 0.3);
+    }
 
-.count {
-  margin-top: 16px;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
+    .btn:active {
+      transform: translateY(0);
+    }
 
-@media (max-width: 768px) {
-  body {
-    padding: 24px 16px;
-  }
-  
-  h1 {
-    font-size: 36px;
-  }
-  
-  .sub {
-    font-size: 18px;
-  }
-  
-  .button-group {
-    flex-direction: column;
-  }
-  
-  button {
-    width: 100%;
-  }
-}
-</style>
+    .result {
+      margin-top: 32px;
+      background: var(--card-bg);
+      padding: 24px;
+      border-radius: 8px;
+      min-height: 180px;
+      white-space: pre-wrap;
+      font-size: 15px;
+      line-height: 1.6;
+      border: 1px solid var(--border);
+      transition: all 0.2s ease;
+    }
+
+    .result:empty {
+      display: none;
+    }
+
+    .count {
+      margin-top: 16px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 24px 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .sub {
+        font-size: 14px;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="container">
+  <div class="container">
 
-<h1>Filtro de Códigos</h1>
-<div class="sub">Cole sua lista e extraia apenas os códigos com quantidade.</div>
+    <h1>Filtro de Códigos</h1>
+    <div class="sub">Cole sua lista e extraia apenas os códigos com quantidade.</div>
 
-<textarea id="entrada" placeholder="Cole aqui sua lista..."></textarea>
+    <textarea id="entrada" placeholder="Cole aqui sua lista..."></textarea>
 
-<div class="button-group">
-  <button class="btn" onclick="filtrar()">FILTRAR CÓDIGOS</button>
-  <button id="btnCopiar" class="btn" onclick="copiar()">COPIAR</button>
-  <button class="btn" onclick="limpar()">LIMPAR</button>
-</div>
+    <div class="button-group">
+      <button class="btn" onclick="filtrar()">FILTRAR CÓDIGOS</button>
+      <button id="btnCopiar" class="btn" onclick="copiar()">COPIAR</button>
+      <button class="btn" onclick="limpar()">LIMPAR</button>
+    </div>
 
-<div class="result" id="resultado"></div>
-<div class="count" id="contagem"></div>
+    <div class="result" id="resultado"></div>
+    <div class="count" id="contagem"></div>
 
-</div>
+  </div>
 
-<script>
+  <script>
 
-let codigosFinal = [];
+    let codigosFinal = [];
 
-function pegarNumeroFinal(linha){
-    let nums = linha.match(/[\d\.,]+/g);
-    if(!nums) return 0;
+    function pegarNumeroFinal(linha) {
+      let nums = linha.match(/[\d\.,]+/g);
+      if (!nums) return 0;
 
-    let ultimo = nums[nums.length-1]
-        .replace(/\./g,'')
-        .replace(',','.');
+      let ultimo = nums[nums.length - 1]
+        .replace(/\./g, '')
+        .replace(',', '.');
 
-    return parseFloat(ultimo) || 0;
-}
+      return parseFloat(ultimo) || 0;
+    }
 
-function pegarCodigo(linha){
-    let match = linha.match(/\d+/);
-    return match ? match[0] : null;
-}
+    function pegarCodigo(linha) {
+      let match = linha.match(/\d+/);
+      return match ? match[0] : null;
+    }
 
-function filtrar(){
+    function filtrar() {
 
-    let texto = document.getElementById("entrada").value;
-    let linhas = texto.split(/\n+/);
+      let texto = document.getElementById("entrada").value;
+      let linhas = texto.split(/\n+/);
 
-    let set = new Set();
+      let set = new Set();
 
-    linhas.forEach(linha=>{
+      linhas.forEach(linha => {
         linha = linha.trim();
-        if(!linha) return;
+        if (!linha) return;
 
         let qtd = pegarNumeroFinal(linha);
-        if(qtd <= 0) return;
+        if (qtd <= 0) return;
 
         let cod = pegarCodigo(linha);
-        if(cod) set.add(cod);
-    });
+        if (cod) set.add(cod);
+      });
 
-    codigosFinal = Array.from(set);
+      codigosFinal = Array.from(set);
 
-    document.getElementById("resultado").textContent =
+      document.getElementById("resultado").textContent =
         codigosFinal.join("\n");
 
-    document.getElementById("contagem").textContent =
+      document.getElementById("contagem").textContent =
         "Quantidade de códigos: " + codigosFinal.length;
-}
+    }
 
-function copiar(){
+    function copiar() {
 
-    if(codigosFinal.length === 0) return;
+      if (codigosFinal.length === 0) return;
 
-    navigator.clipboard.writeText(codigosFinal.join("\n"));
+      navigator.clipboard.writeText(codigosFinal.join("\n"));
 
-    let btn = document.getElementById("btnCopiar");
-    btn.textContent = "COPIADO ✓";
+      let btn = document.getElementById("btnCopiar");
+      btn.textContent = "COPIADO ✓";
 
-    setTimeout(()=>{
+      setTimeout(() => {
         btn.textContent = "COPIAR";
-    },2000);
-}
+      }, 2000);
+    }
 
-function limpar(){
-    document.getElementById("entrada").value="";
-    document.getElementById("resultado").textContent="";
-    document.getElementById("contagem").textContent="";
-}
+    function limpar() {
+      document.getElementById("entrada").value = "";
+      document.getElementById("resultado").textContent = "";
+      document.getElementById("contagem").textContent = "";
+    }
 
-</script>
+  </script>
 
 </body>
+
 </html>
