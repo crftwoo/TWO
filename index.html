@@ -213,7 +213,7 @@
       menu.style.display = "none";
       content.style.display = "block";
       tabs.style.display = "flex";
-      frame.src = arquivo;
+      frame.src = arquivo + "?v=" + new Date().getTime();
     }
 
     function voltarMenu() {
