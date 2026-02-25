@@ -163,6 +163,57 @@
       text-transform: uppercase;
       letter-spacing: -1px;
     }
+
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .tabs {
+        margin-left: 0;
+        margin-top: 14px;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+
+      .tab {
+        flex: 1 1 calc(50% - 5px);
+        text-align: center;
+        padding: 10px;
+        font-size: 11px;
+      }
+
+      .menu {
+        padding: 40px 16px;
+      }
+
+      .menu-title {
+        font-size: 28px;
+        text-align: center;
+        margin-bottom: 32px;
+      }
+
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .menu-item {
+        height: 140px;
+        flex-direction: row;
+        justify-content: flex-start;
+        padding: 0 24px;
+        gap: 24px;
+      }
+
+      .menu-item-icon {
+        margin-bottom: 0;
+      }
+
+      .menu-item-title {
+        text-align: left;
+      }
+    }
   </style>
 </head>
 

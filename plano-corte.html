@@ -160,6 +160,50 @@
     .hidden {
       display: none !important;
     }
+
+    /* Wrap para tabelas não quebrarem a tela do mobile */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 20px;
+    }
+
+    .table-responsive table {
+      margin-top: 0;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      h3 {
+        font-size: 16px;
+      }
+
+      button {
+        width: 100%;
+        margin-top: 12px;
+      }
+
+      .box {
+        padding: 16px;
+      }
+
+      .decision {
+        padding: 16px;
+      }
+
+      th,
+      td {
+        padding: 8px;
+        font-size: 12px;
+      }
+    }
   </style>
 </head>
 
@@ -178,14 +222,16 @@
     <!-- DEMANDA INTERPRETADA -->
     <div class="box hidden" id="editor">
       <h3>Demanda interpretada (editável)</h3>
-      <table id="editTable">
-        <tr>
-          <th>Qtd</th>
-          <th>Comprimento (m)</th>
-          <th>Tipo</th>
-          <th>Espessura</th>
-        </tr>
-      </table>
+      <div class="table-responsive">
+        <table id="editTable">
+          <tr>
+            <th>Qtd</th>
+            <th>Comprimento (m)</th>
+            <th>Tipo</th>
+            <th>Espessura</th>
+          </tr>
+        </table>
+      </div>
       <button onclick="confirmar()">OK</button>
     </div>
 
@@ -413,7 +459,7 @@
         out += `<h3>Plano de corte – ${chave}</h3>`;
         let paineis = planos[chave].base;
         let max = Math.max(...paineis.map(p => p.length));
-        out += `<table><tr><th rowspan="2">Painel</th><th colspan="${max}">Cortes (m)</th><th rowspan="2">Sobra</th></tr><tr>`;
+        out += `<div class="table-responsive"><table><tr><th rowspan="2">Painel</th><th colspan="${max}">Cortes (m)</th><th rowspan="2">Sobra</th></tr><tr>`;
         for (let i = 1; i <= max; i++) out += `<th>Corte ${i}</th>`;
         out += "</tr>";
 
@@ -426,7 +472,7 @@
           for (let c = 0; c < max; c++) out += `<td>${p[c] ? p[c].toFixed(2) : ""}</td>`;
           out += `<td>${(tam - usado).toFixed(2)}</td></tr>`;
         });
-        out += "</table>";
+        out += "</table></div>";
 
         Object.keys(cont).forEach(t => {
           resumoTxt += `${cont[t]} pçs – Painel ${chave.split(" ")[0]} ${chave.split(" ")[1]} de ${Number(t).toFixed(2)} m\n`;
