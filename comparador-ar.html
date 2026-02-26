@@ -81,13 +81,20 @@
       gap: 12px;
     }
 
-    .tipo-btn img {
-      width: 110px;
-      transition: transform 0.3s ease;
+    .icon-svg {
+      width: 80px;
+      height: 80px;
+      stroke: var(--text-secondary, #BFC3C7);
+      transition: all 0.3s ease;
     }
 
-    .tipo-btn:hover img {
+    .tipo-btn:hover .icon-svg {
       transform: scale(1.05);
+      stroke: #fff;
+    }
+
+    .tipo-btn.selecionado .icon-svg {
+      stroke: #000;
     }
 
     #resultados {
@@ -185,11 +192,11 @@
     let dados = [], tipoSelecionado = null, btusSelecionado = null, cicloSelecionado = null;
     let ativoTipo = null, ativoBtu = null, ativoCiclo = null;
 
-    const imagens = {
-      "Hiwall": "img/hiwall.png",
-      "Hi Wall": "img/hi_wall.png",
-      "Piso Teto": "img/piso_teto.png",
-      "Cassete": "img/cassete.png"
+    const svgsTipos = {
+      "Hiwall": `<svg viewBox="0 0 24 24" fill="none" class="icon-svg"><rect x="2" y="7" width="20" height="6" rx="2" ry="2"></rect><line x1="6" y1="13" x2="6" y2="13.01"></line><line x1="18" y1="13" x2="18" y2="13.01"></line><path d="M7 16q1.5 1.5 1.5 3t-1.5 2"></path><path d="M12 16q1.5 1.5 1.5 3t-1.5 2"></path><path d="M17 16q1.5 1.5 1.5 3t-1.5 2"></path></svg>`,
+      "Hi Wall": `<svg viewBox="0 0 24 24" fill="none" class="icon-svg"><rect x="2" y="7" width="20" height="6" rx="2" ry="2"></rect><line x1="6" y1="13" x2="6" y2="13.01"></line><line x1="18" y1="13" x2="18" y2="13.01"></line><path d="M7 16q1.5 1.5 1.5 3t-1.5 2"></path><path d="M12 16q1.5 1.5 1.5 3t-1.5 2"></path><path d="M17 16q1.5 1.5 1.5 3t-1.5 2"></path></svg>`,
+      "Piso Teto": `<svg viewBox="0 0 24 24" fill="none" class="icon-svg"><path d="M22 6L2 6L4 12L20 12Z"></path><path d="M7 15q1 1.5 1 3t-1 2"></path><path d="M12 15q1 1.5 1 3t-1 2"></path><path d="M17 15q1 1.5 1 3t-1 2"></path><line x1="10" y1="9" x2="14" y2="9"></line></svg>`,
+      "Cassete": `<svg viewBox="0 0 24 24" fill="none" class="icon-svg"><rect x="3" y="2" width="18" height="4" rx="1"></rect><polygon points="2 6 22 6 18 10 6 10"></polygon><path d="M7 13q1 1.5 1 3t-1 2"></path><path d="M12 13q1 1.5 1 3t-1 2"></path><path d="M17 13q1 1.5 1 3t-1 2"></path><circle cx="12" cy="8" r="1.5"></circle></svg>`
     };
 
     fetch("https://opensheet.elk.sh/1ml7XpwZfzM4ElRJb4G62b93VMqUw3jeprTtgxdigiD8/Sheet1")
@@ -206,7 +213,7 @@
       tipos.forEach(t => {
         const b = document.createElement("button");
         b.className = "tipo-btn";
-        b.innerHTML = `<img src="${imagens[t] || ''}"><span>${t}</span>`;
+        b.innerHTML = `${svgsTipos[t] || ''}<span>${t}</span>`;
         b.onclick = () => {
           if (ativoTipo) ativoTipo.classList.remove("selecionado");
           b.classList.add("selecionado");
