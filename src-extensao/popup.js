@@ -1,9 +1,6 @@
-// Popup agora funciona como um "comparador" leve:
-// carrega os dados da planilha, filtra apenas Dufrio
-// e abre diretamente o link escolhido ao clicar em "Pesquisar".
-
-const SHEET_URL = 'https://opensheet.elk.sh/1ml7XpwZfzM4ElRJb4G62b93VMqUw3jeprTtgxdigiD8/Sheet1';
-
+// Popup agora funciona como um comparador multi-lojas:
+// carrega os dados da planilha e abre diretamente o link escolhido ao clicar no botão da loja.
+const SHEET_URL = 'https://opensheet.elk.sh/1LLVFTzxoSakgqnjS_ws7GgYNKdEqP26H0Z7Fe5DEmcc/Página1';
 const TIPO_ORDER = ['Hiwall', 'Piso Teto', 'Cassete'];
 
 function createChip(label, value, currentValue, onSelect) {
@@ -61,30 +58,28 @@ async function initPopup() {
             throw new Error('Não foi possível carregar a planilha.');
         }
 
-        const rows = await response.json();
-
-        // Mantém somente linhas da Dufrio com link válido
-        const dufrioRows = rows.filter(row =>
+        // Remove filtro hardcoded "Dufrio"
+        const validRows = rows.filter(row =>
             row &&
             typeof row.Site === 'string' &&
-            row.Site.toLowerCase() === 'dufrio' &&
             row.Link
         );
 
-        if (dufrioRows.length === 0) {
-            resultsDiv.innerHTML = '<p class="error-msg">Nenhum link da Dufrio encontrado na planilha.</p>';
+        if (validRows.length === 0) {
+            resultsDiv.innerHTML = '<p class="error-msg">Nenhum link configurado na planilha (colunas Site e Link).</p>';
             return;
         }
 
-        // Organiza dados em estrutura: Tipo -> BTUs -> Ciclo -> Link
+        // Organiza dados em estrutura: Tipo -> BTUs -> Ciclo -> Site -> Link
         const mapByTipo = {};
-        dufrioRows.forEach(row => {
+        validRows.forEach(row => {
             const tipo = (row.Tipo || '').trim();
             const btus = (row.BTUs || '').trim();
             const ciclo = (row.Ciclo || '').trim();
+            const site = row.Site.trim();
             const link = row.Link.trim();
 
-            if (!tipo || !btus || !ciclo || !link) return;
+            if (!tipo || !btus || !ciclo || !site || !link) return;
 
             if (!mapByTipo[tipo]) {
                 mapByTipo[tipo] = {};
@@ -92,9 +87,12 @@ async function initPopup() {
             if (!mapByTipo[tipo][btus]) {
                 mapByTipo[tipo][btus] = {};
             }
-            // Se tiver duplicado, mantemos o primeiro
             if (!mapByTipo[tipo][btus][ciclo]) {
-                mapByTipo[tipo][btus][ciclo] = link;
+                mapByTipo[tipo][btus][ciclo] = {};
+            }
+            // Mapeia por site
+            if (!mapByTipo[tipo][btus][ciclo][site]) {
+                mapByTipo[tipo][btus][ciclo][site] = link;
             }
         });
 
@@ -103,7 +101,7 @@ async function initPopup() {
             Object.keys(mapByTipo).filter(t => !TIPO_ORDER.includes(t)).sort()
         );
         if (tipos.length === 0) {
-            resultsDiv.innerHTML = '<p class="error-msg">Não foi possível organizar os dados da Dufrio.</p>';
+            resultsDiv.innerHTML = '<p class="error-msg">Não foi possível organizar os dados de busca.</p>';
             return;
         }
 
@@ -158,7 +156,7 @@ async function initPopup() {
                     renderCicloChips();
                     btusGroup.classList.remove('hidden');
                     cicloGroup.classList.add('hidden');
-                    searchBtn.classList.add('hidden');
+                    storesGroup.classList.add('hidden');
                     btusGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 });
                 tipoRow.appendChild(chip);
@@ -213,7 +211,7 @@ async function initPopup() {
                     renderBtusChips();
                     renderCicloChips();
                     cicloGroup.classList.remove('hidden');
-                    searchBtn.classList.add('hidden');
+                    storesGroup.classList.add('hidden');
                     cicloGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 });
                 btusRow.appendChild(chip);
@@ -287,9 +285,10 @@ async function initPopup() {
                     selectedCiclo = newCiclo;
                     errorsP.style.display = 'none';
                     renderCicloChips();
-                    searchBtn.classList.remove('hidden');
                     renderSummary();
-                    searchBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    renderStoreButtons();
+                    storesGroup.classList.remove('hidden');
+                    storesGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 });
                 cicloRow.appendChild(chip);
             });
@@ -298,53 +297,79 @@ async function initPopup() {
         cicloGroup.appendChild(cicloLabel);
         cicloGroup.appendChild(cicloRow);
 
-        // Botão de pesquisa (texto apenas "DUFRIO")
-        const searchBtn = document.createElement('button');
-        searchBtn.type = 'button';
-        searchBtn.className = 'primary-btn';
-        searchBtn.textContent = 'DUFRIO';
-        searchBtn.classList.add('hidden');
+        // Container para os botões das lojas
+        const storesGroup = document.createElement('div');
+        storesGroup.className = 'stores-group hidden';
+        storesGroup.style.display = 'flex';
+        storesGroup.style.flexDirection = 'column';
+        storesGroup.style.gap = '8px';
+        storesGroup.style.marginTop = '15px';
 
-        searchBtn.addEventListener('click', async () => {
-            errorsP.style.display = 'none';
-
-            if (!selectedTipo || !selectedBtus || !selectedCiclo) {
-                errorsP.textContent = 'Selecione o tipo, os BTUs e o ciclo.';
-                errorsP.style.display = 'block';
-                return;
-            }
+        function renderStoreButtons() {
+            storesGroup.innerHTML = '';
+            if (!selectedTipo || !selectedBtus || !selectedCiclo) return;
 
             const mapBtus = mapByTipo[selectedTipo] || {};
             const mapCiclo = mapBtus[selectedBtus] || {};
-            const link = mapCiclo[selectedCiclo];
+            const storeLinks = mapCiclo[selectedCiclo] || {};
+            const availableStores = Object.keys(storeLinks);
 
-            if (!link) {
-                errorsP.textContent = 'Não encontrei link para essa combinação na Dufrio.';
+            if (availableStores.length === 0) {
+                errorsP.textContent = 'Nenhum site configurado para essa combinação.';
                 errorsP.style.display = 'block';
                 return;
             }
 
-            try {
-                const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-                if (tab && tab.id) {
-                    await chrome.tabs.update(tab.id, { url: link });
-                } else {
-                    await chrome.tabs.create({ url: link, active: true });
+            availableStores.forEach(siteName => {
+                const searchBtn = document.createElement('button');
+                searchBtn.type = 'button';
+                searchBtn.className = 'primary-btn';
+                searchBtn.textContent = 'ABRIR NO ' + siteName.toUpperCase();
+
+                // Cores dinâmicas simples para diferenciar botões baseadas no nome (opcional)
+                if (siteName.toLowerCase().includes('dufrio')) {
+                    searchBtn.style.backgroundColor = '#0056b3';
+                } else if (siteName.toLowerCase().includes('leveros')) {
+                    searchBtn.style.backgroundColor = '#009038'; // Verde da Leveros
+                } else if (siteName.toLowerCase().includes('poloar')) {
+                    searchBtn.style.backgroundColor = '#f26522'; // Laranja da Poloar
                 }
-                window.close();
-            } catch (err) {
-                console.error('Erro ao abrir a aba da Dufrio:', err);
-                errorsP.textContent = 'Não foi possível abrir o link da Dufrio.';
-                errorsP.style.display = 'block';
-            }
-        });
+
+                searchBtn.addEventListener('click', async () => {
+                    errorsP.style.display = 'none';
+                    const link = storeLinks[siteName];
+
+                    if (!link) {
+                        errorsP.textContent = `Link ausente para ${siteName}.`;
+                        errorsP.style.display = 'block';
+                        return;
+                    }
+
+                    try {
+                        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+                        if (tab && tab.id) {
+                            await chrome.tabs.update(tab.id, { url: link });
+                        } else {
+                            await chrome.tabs.create({ url: link, active: true });
+                        }
+                        window.close();
+                    } catch (err) {
+                        console.error(`Erro ao abrir a aba ${siteName}:`, err);
+                        errorsP.textContent = `Não foi possível abrir o link do ${siteName}.`;
+                        errorsP.style.display = 'block';
+                    }
+                });
+
+                storesGroup.appendChild(searchBtn);
+            });
+        }
 
         container.appendChild(tipoGroup);
         container.appendChild(btusGroup);
         container.appendChild(cicloGroup);
         container.appendChild(summaryDiv);
         container.appendChild(errorsP);
-        container.appendChild(searchBtn);
+        container.appendChild(storesGroup);
 
         resultsDiv.appendChild(container);
 
