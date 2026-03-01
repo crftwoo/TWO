@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "Ar condicionado - Dufrio",
+    "name": "Ar Condicionado",
     "version": "1.2",
-    "description": "Escolha o tipo, BTUs e ciclo e vá direto para a lista de ar-condicionados da Dufrio, com acessos rápidos ao carrinho e às páginas de produtos.",
+    "description": "Escolha o tipo, BTUs e ciclo e vá direto para a lista de ar-condicionados da Dufrio ou Leveros, com acessos rápidos ao carrinho e às páginas de produtos.",
     "permissions": [
         "activeTab",
         "scripting",
