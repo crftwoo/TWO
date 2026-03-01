@@ -284,91 +284,10 @@
       res.forEach(i => {
         const card = document.createElement("div");
         card.className = "card";
-
-        const siteName = i.Site;
-        const linkHref = i.Link;
-
-        card.innerHTML = `<strong>${siteName}</strong><br><br>
-          <div style="display: flex; flex-direction: column; gap: 10px;">
-            <button onclick="carregarProdutosNaTela(this, '${linkHref}', '${siteName}')" style="background-color: var(--green); color: black;">Carregar Produtos aqui</button>
-            <a href="${linkHref}" target="_blank"><button>Abrir no site oficial</button></a>
-          </div>
-          <div class="scraped-results" style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;"></div>
-        `;
+        card.innerHTML = `<strong>${i.Site}</strong><br><br>
+    <a href="${i.Link}" target="_blank"><button>Abrir pesquisa</button></a>`;
         div.appendChild(card);
       });
-    }
-
-    // Função que fala com a extensão via bridge.js
-    function carregarProdutosNaTela(btn, url, siteName) {
-      const originalText = btn.innerText;
-      btn.innerText = "Raspando site... ⏳";
-      btn.disabled = true;
-
-      const resultsContainer = btn.parentElement.nextElementSibling;
-      resultsContainer.innerHTML = "<span style='color: #888; font-size: 14px;'>Carregando produtos em segundo plano (pode demorar uns segundos)...</span>";
-
-      const reqId = Date.now().toString();
-
-      // Handler temporário para ouvir a resposta específica deste request
-      const listener = (event) => {
-        if (event.source !== window || !event.data || event.data.type !== "TWO_EXTENSION_RESPONSE") return;
-        if (event.data.id === reqId) {
-          window.removeEventListener("message", listener);
-
-          btn.innerText = originalText;
-          btn.disabled = false;
-
-          const response = event.data.data;
-          if (!response || !response.success) {
-            resultsContainer.innerHTML = `<span style="color: #ff5555;">Erro: ${response ? response.error : 'Sem resposta da extensão (Verifique se ela está instalada e atualizada)'}</span>`;
-            return;
-          }
-
-          const products = response.data || [];
-          if (products.length === 0) {
-            resultsContainer.innerHTML = "<span style='color: #ffaa00;'>Nenhum produto encontrado.</span>";
-            return;
-          }
-
-          resultsContainer.innerHTML = `<strong>${products.length} produtos encontrados no ${siteName}:</strong><br>`;
-          products.forEach(p => {
-            const prodCard = document.createElement('div');
-            prodCard.style = "background: #1A1F24; padding: 15px; border-radius: 8px; display: flex; align-items: center; gap: 15px;";
-
-            const imgHtml = p.image ? `<img src="${p.image}" style="width: 80px; height: 80px; object-fit: contain; background: white; border-radius: 4px;" crossorigin="anonymous">` : '';
-
-            prodCard.innerHTML = `
-                        ${imgHtml}
-                        <div style="flex: 1;">
-                            <div style="font-size: 14px; margin-bottom: 8px; line-height: 1.2;">${p.title}</div>
-                            <div style="color: var(--green); font-weight: bold; font-size: 16px;">${p.spot}</div>
-                            <div style="color: #aaa; font-size: 12px;">${p.install}</div>
-                        </div>
-                    `;
-            resultsContainer.appendChild(prodCard);
-          });
-        }
-      };
-
-      window.addEventListener("message", listener);
-
-      // Dispara a mensagem que o bridge.js vai escutar
-      window.postMessage({
-        type: "TWO_EXTENSION_REQUEST",
-        id: reqId,
-        url: url
-      }, "*");
-
-      // Timeout de fallback extra (16s)
-      setTimeout(() => {
-        window.removeEventListener("message", listener);
-        if (btn.disabled) {
-          btn.innerText = originalText;
-          btn.disabled = false;
-          resultsContainer.innerHTML = `<span style="color: #ff5555;">Tempo esgotado. A página pode ter demorado demais para carregar.</span>`;
-        }
-      }, 16000);
     }
   </script>
 
