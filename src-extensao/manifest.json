@@ -6,16 +6,27 @@
     "permissions": [
         "activeTab",
         "scripting",
-        "storage"
+        "storage",
+        "tabs"
     ],
     "host_permissions": [
-        "https://www.dufrio.com.br/ar-condicionado*",
-        "https://www.dufrio.com.br/checkout/cart/",
+        "https://www.dufrio.com.br/*",
+        "https://www.leveros.com.br/*",
         "https://opensheet.elk.sh/*"
     ],
+    "externally_connectable": {
+        "matches": [
+            "https://crftwoo.github.io/*",
+            "http://127.0.0.1:*/*",
+            "http://localhost:*/*"
+        ]
+    },
+    "background": {
+        "service_worker": "background.js"
+    },
     "action": {
         "default_popup": "popup.html",
-        "default_title": "Ar condicionado - Dufrio"
+        "default_title": "Pesquisa de Ar Condicionado"
     },
     "content_scripts": [
         {
@@ -41,6 +52,17 @@
                 "cart.js"
             ],
             "run_at": "document_idle"
+        },
+        {
+            "matches": [
+                "https://crftwoo.github.io/*",
+                "http://127.0.0.1:*/*",
+                "http://localhost:*/*"
+            ],
+            "js": [
+                "bridge.js"
+            ],
+            "run_at": "document_start"
         }
     ]
 }
