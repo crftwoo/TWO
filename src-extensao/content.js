@@ -65,6 +65,63 @@
     }
 
     function extractData() {
+        const isLeveros = window.location.host.includes('leveros.com.br');
+        if (isLeveros) return extractDataLeveros();
+        return extractDataDufrio();
+    }
+
+    // --- LEVEROS SCRAPER ---
+    function extractDataLeveros() {
+        const products = [];
+        const seenTitles = new Set();
+
+        const cards = document.querySelectorAll('.card-product');
+        if (cards.length === 0) {
+            console.log("Leveros Extrator: Nenhum .card-product encontrado na tela.");
+            return products;
+        }
+
+        cards.forEach(card => {
+            try {
+                // Título
+                const titleEl = card.querySelector('.card-product__name');
+                if (!titleEl) return;
+                const titleStr = titleEl.innerText.trim();
+
+                // Imagem
+                const imgEl = card.querySelector('.card-product__image img');
+                if (!imgEl) return;
+                let imgSrc = imgEl.src || imgEl.getAttribute('data-src') || '';
+                if (!imgSrc || imgSrc.includes('data:image')) return;
+
+                // Preço à vista
+                const spotEl = card.querySelector('.card-product__price--cash');
+                if (!spotEl) return;
+                const spotLine = spotEl.innerText.replace(/\s+/g, ' ').trim();
+
+                // Preço parcelado
+                const installEl = card.querySelector('.card-product__price--installment');
+                if (!installEl) return;
+                const installLine = installEl.innerText.replace(/\s+/g, ' ').trim();
+
+                if (!seenTitles.has(titleStr)) {
+                    seenTitles.add(titleStr);
+                    products.push({
+                        title: titleStr,
+                        image: imgSrc,
+                        spot: spotLine,
+                        install: installLine
+                    });
+                }
+            } catch (e) {
+                console.error("Erro ao extrair um produto da Leveros:", e);
+            }
+        });
+        return products;
+    }
+
+    // --- DUFRIO SCRAPER ---
+    function extractDataDufrio() {
         const products = [];
         const seenTitles = new Set();
 
