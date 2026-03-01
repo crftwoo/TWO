@@ -1,5 +1,5 @@
-// Listen for messages from the approved TWO website
-chrome.runtime.onMessageExternal.addListener((request, sender, sendResponse) => {
+// Listen for messages from the bridge content script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "scrape" && request.url) {
 
         // Return a Promise or return true to indicate async response
