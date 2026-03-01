@@ -1,6 +1,9 @@
 (function () {
     // Verifica se está na página do carrinho
-    if (window.location.href !== 'https://www.dufrio.com.br/checkout/cart/') {
+    const isDufrio = window.location.href.includes('dufrio.com.br/checkout/cart');
+    const isLeveros = window.location.href.includes('leveros.com.br/checkout/carrinho');
+
+    if (!isDufrio && !isLeveros) {
         return;
     }
 
@@ -144,6 +147,8 @@
             subtotal: ''
         };
 
+        const isLeveros = window.location.href.includes('leveros.com.br');
+
         // Nome (print mostra data-th="Product" e strong.product-item-name > a.font-medium)
         const nameEl = row.querySelector(
             'td[data-th="Product"] strong.product-item-name a, td[data-th="Produto"] strong.product-item-name a,' +
@@ -168,7 +173,7 @@
         if (unitEl) item.unitPrice = normalizeCurrency(unitEl.textContent);
 
         // Quantidade: input ou texto no cell qty
-        const qtyInput = row.querySelector('input[name*="qty"], input[name*="quantity"], input[type="number"]');
+        const qtyInput = row.querySelector('input[name*="qty"], input[name*="quantity"], input[type="number"], input[class*="qty"]');
         if (qtyInput) {
             item.quantity = normalizeQuantity(qtyInput.value || qtyInput.getAttribute('value'));
         } else {
@@ -177,8 +182,27 @@
         }
 
         // Subtotal
-        const subEl = row.querySelector('td[data-th="Subtotal"] .price, td[data-th="Subtotal"], td.col.subtotal, td.col.subtotal .price');
+        const subEl = row.querySelector('td[data-th="Subtotal"] .price, td[data-th="Subtotal"], td.col.subtotal, td.col.subtotal .price, td:nth-child(4)');
         if (subEl) item.subtotal = normalizeCurrency(subEl.textContent);
+
+        // Se isLeveros e faltou algo, tenta extrair das colunas específicas (Produto, Preço, Qtd, Subtotal)
+        if (isLeveros) {
+            const tds = row.querySelectorAll('td');
+            if (tds.length >= 4) {
+                if (!item.name) {
+                    const nameAnchor = tds[0].querySelector('a, strong, span');
+                    if (nameAnchor) item.name = nameAnchor.textContent.replace(/\s+/g, ' ').trim();
+                    else item.name = tds[0].textContent.replace(/\s+/g, ' ').trim();
+                }
+                if (!item.unitPrice) item.unitPrice = normalizeCurrency(tds[1].textContent);
+                if (!item.quantity) {
+                    const inp = tds[2].querySelector('input');
+                    if (inp) item.quantity = normalizeQuantity(inp.value);
+                    else item.quantity = normalizeQuantity(tds[2].textContent);
+                }
+                if (!item.subtotal) item.subtotal = normalizeCurrency(tds[3].textContent);
+            }
+        }
 
         return item;
     }
@@ -202,15 +226,17 @@
         };
 
         try {
-            // Itens do carrinho (um ou mais)
-            const rows = Array.from(document.querySelectorAll('tr.item-info'));
+            // Itens do carrinho (Dufrio ou Leveros)
+            const rows = Array.from(document.querySelectorAll('tr.item-info, table tbody tr, .cart-item, [class*="product-item"]'));
             if (rows.length > 0) {
-                data.items = rows.map(buildItemFromRow).filter(i => i.name || i.unitPrice || i.quantity || i.subtotal);
-            } else {
+                data.items = rows.map(buildItemFromRow).filter(i => i.name && (i.unitPrice || i.quantity || i.subtotal));
+            }
+
+            if (!data.items || data.items.length === 0) {
                 // Fallback: tenta montar a partir das células Product
-                const productCells = Array.from(document.querySelectorAll('td[data-th="Product"], td[data-th="Produto"]'));
+                const productCells = Array.from(document.querySelectorAll('td[data-th="Product"], td[data-th="Produto"], td[class*="product"]'));
                 const cellRows = productCells.map(c => c.closest('tr')).filter(Boolean);
-                data.items = cellRows.map(buildItemFromRow).filter(i => i.name || i.unitPrice || i.quantity || i.subtotal);
+                data.items = cellRows.map(buildItemFromRow).filter(i => i.name && (i.unitPrice || i.quantity || i.subtotal));
             }
 
             // Define "padrão" (primeiro item) para compatibilidade com a UI existente
@@ -430,6 +456,15 @@
                 }
             }
 
+            // Se ainda não tiver parcelamento (Leveros não mostra sempre no carrinho), calcula 10x do total
+            if (!data.installmentPrice && data.totalWithShipping) {
+                const totalNum = parseCurrencyValue(data.totalWithShipping);
+                if (totalNum > 0) {
+                    const inst = totalNum / 10;
+                    data.installmentPrice = `em 10 x de R$ ${formatCurrency(inst)}`;
+                }
+            }
+
         } catch (error) {
             console.error('Erro ao extrair dados do carrinho:', error);
         }
@@ -471,7 +506,7 @@
         let text = '';
 
         // Título
-        text += `*Orçamento - Dufrio*\n\n`;
+        text += `*Orçamento*\n\n`;
 
         // Lista de produtos
         if (data.items && data.items.length > 0) {
