@@ -109,7 +109,8 @@
                 if (!imgSrc || imgSrc.includes('data:image')) return;
 
                 // 1. Pega o preço total (que na Leveros é o valor base parcelado inteiro)
-                const totalPriceEl = card.querySelector('[class*="price-no-price-of"], [class*="price-no-price"]');
+                // Pode vir como "card-product_price-per", "no-price-of", etc.
+                const totalPriceEl = card.querySelector('[class*="price-no-price"], [class*="no-price"], [class*="price-per"]');
                 let totalPrice = "";
                 if (totalPriceEl) {
                     totalPrice = totalPriceEl.innerText.replace(/\s+/g, ' ').trim();
@@ -133,11 +134,14 @@
                 let installLine = "À vista"; // Fallback
                 if (installEl && totalPrice) {
                     let installRaw = installEl.innerText.replace(/\s+/g, ' ').trim();
-                    // Remove "sem juros" etc para ficar só "10x de R$189,40"
-                    let justInstallment = installRaw.replace(/sem juros/gi, '').trim();
+                    // Remove "sem juros", etc para ficar só "10x de R$189,40"
+                    let justInstallment = installRaw.replace(/sem juros/gi, '').replace(/\s+/g, ' ').trim();
+                    // Coloca espaço após R$ se não tiver
+                    justInstallment = justInstallment.replace(/R\$/gi, 'R$ ');
+                    // Padrão pedido: "ou R$ 1.894,00 em 10x de R$ 189,40"
                     installLine = `ou ${totalPrice} em ${justInstallment}`;
                 } else if (installEl) {
-                    installLine = installEl.innerText.replace(/\s+/g, ' ').trim();
+                    installLine = installEl.innerText.replace(/sem juros/gi, '').trim();
                 }
 
                 if (!seenTitles.has(titleStr)) {
