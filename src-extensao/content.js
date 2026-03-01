@@ -84,25 +84,31 @@
         cards.forEach(card => {
             try {
                 // Título
-                const titleEl = card.querySelector('.card-product__name');
+                const titleEl = card.querySelector('.card-product_name');
                 if (!titleEl) return;
                 const titleStr = titleEl.innerText.trim();
 
                 // Imagem
-                const imgEl = card.querySelector('.card-product__image img');
+                const imgEl = card.querySelector('.card-product_image');
                 if (!imgEl) return;
                 let imgSrc = imgEl.src || imgEl.getAttribute('data-src') || '';
                 if (!imgSrc || imgSrc.includes('data:image')) return;
 
                 // Preço à vista
-                const spotEl = card.querySelector('.card-product__price--cash');
+                const spotEl = card.querySelector('.card-product_prices-cash, .card-product_price-no-price-of, [class*="product_prices-cash"]');
                 if (!spotEl) return;
-                const spotLine = spotEl.innerText.replace(/\s+/g, ' ').trim();
+                let spotLine = spotEl.innerText.replace(/\s+/g, ' ').trim();
+
+                // Remove o texto indesejado do spot
+                spotLine = spotLine.replace(/ou\s*/gi, '').replace(/\s*à vista/gi, '').trim();
+                spotLine = spotLine || 'R$ 0,00';
 
                 // Preço parcelado
-                const installEl = card.querySelector('.card-product__price--installment');
-                if (!installEl) return;
-                const installLine = installEl.innerText.replace(/\s+/g, ' ').trim();
+                const installEl = card.querySelector('.card-product_price-installments, [class*="product_price-installments"]');
+                let installLine = "À vista"; // Caso não tenha parcelamento
+                if (installEl) {
+                    installLine = installEl.innerText.replace(/\s+/g, ' ').trim();
+                }
 
                 if (!seenTitles.has(titleStr)) {
                     seenTitles.add(titleStr);
