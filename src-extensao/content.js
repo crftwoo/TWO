@@ -19,7 +19,11 @@
 
         const titleSpan = document.createElement('span');
         titleSpan.id = 'dufrio-ext-main-title';
-        titleSpan.innerText = 'Ar condicionado - Dufrio';
+
+        // Define o título inicial com base no site atual
+        const isLeveros = window.location.host.includes('leveros.com.br');
+        titleSpan.innerText = isLeveros ? 'Ar condicionado - Leveros' : 'Ar condicionado - Dufrio';
+
         titleSpan.style.whiteSpace = 'pre-line';
 
         const copyListBtn = document.createElement('button');
@@ -302,7 +306,10 @@
     }
 
     function generateSmartTitle(productsList) {
-        if (!productsList || productsList.length === 0) return 'Ar condicionado - Dufrio';
+        const isLeveros = window.location.host.includes('leveros.com.br');
+        const defaultTitle = isLeveros ? 'Ar condicionado - Leveros' : 'Ar condicionado - Dufrio';
+
+        if (!productsList || productsList.length === 0) return defaultTitle;
 
         const typesStats = {};
 
