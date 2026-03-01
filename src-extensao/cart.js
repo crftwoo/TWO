@@ -149,8 +149,9 @@
 
         const isLeveros = window.location.href.includes('leveros.com.br');
 
-        // Nome (print mostra data-th="Product" e strong.product-item-name > a.font-medium)
+        // Nome (print mostra data-th="Product" e strong.product-item-name > a.font-medium, e 'span.nome' na Leveros)
         const nameEl = row.querySelector(
+            'span.nome, ' +
             'td[data-th="Product"] strong.product-item-name a, td[data-th="Produto"] strong.product-item-name a,' +
             'td[data-th="Product"] .product-item-name a, td[data-th="Produto"] .product-item-name a,' +
             'td[data-th="Product"] a.font-medium, td[data-th="Produto"] a.font-medium,' +
@@ -158,8 +159,8 @@
         );
         if (nameEl) item.name = nameEl.textContent.trim();
 
-        // Imagem dentro do td Product
-        const productCell = row.querySelector('td[data-th="Product"], td[data-th="Produto"]') || row;
+        // Imagem dentro do td Product ou dentro do box
+        const productCell = row.querySelector('td[data-th="Product"], td[data-th="Produto"], .box-img') || row;
         const sourceEl = productCell.querySelector('picture.product-image-photo source');
         if (sourceEl?.srcset) {
             item.image = sourceEl.srcset.split(',')[0].split(' ')[0].trim();
@@ -168,21 +169,21 @@
             if (imgEl) item.image = imgEl.currentSrc || imgEl.src || imgEl.getAttribute('data-src') || '';
         }
 
-        // Preço unitário
-        const unitEl = row.querySelector('td[data-th="Price"] .price, td[data-th="Preço"] .price, td[data-th="Price"], td[data-th="Preço"]');
+        // Preço unitário (Leveros usa divs com .precoValorUnitario, Dufrio usa td)
+        const unitEl = row.querySelector('.precoValorUnitario, td[data-th="Price"] .price, td[data-th="Preço"] .price, td[data-th="Price"], td[data-th="Preço"]');
         if (unitEl) item.unitPrice = normalizeCurrency(unitEl.textContent);
 
-        // Quantidade: input ou texto no cell qty
-        const qtyInput = row.querySelector('input[name*="qty"], input[name*="quantity"], input[type="number"], input[class*="qty"]');
+        // Quantidade: input.quantidadeProdutoCarrinho (Leveros) ou inputs convencionais
+        const qtyInput = row.querySelector('input.quantidadeProdutoCarrinho, input[name*="qty"], input[name*="quantity"], input[type="number"], input[class*="qty"]');
         if (qtyInput) {
             item.quantity = normalizeQuantity(qtyInput.value || qtyInput.getAttribute('value'));
         } else {
-            const qtyCell = row.querySelector('td.col.qty, td[data-th="Qty"], td[data-th="Quantidade"], td[data-th="Qtd"], td[data-th="qty"]');
+            const qtyCell = row.querySelector('.qtd-box, td.col.qty, td[data-th="Qty"], td[data-th="Quantidade"], td[data-th="Qtd"], td[data-th="qty"]');
             if (qtyCell) item.quantity = normalizeQuantity(qtyCell.textContent);
         }
 
-        // Subtotal
-        const subEl = row.querySelector('td[data-th="Subtotal"] .price, td[data-th="Subtotal"], td.col.subtotal, td.col.subtotal .price, td:nth-child(4)');
+        // Subtotal (Leveros usa .preco-final, Dufrio usa td)
+        const subEl = row.querySelector('.preco-final, td[data-th="Subtotal"] .price, td[data-th="Subtotal"], td.col.subtotal, td.col.subtotal .price, td:nth-child(4)');
         if (subEl) item.subtotal = normalizeCurrency(subEl.textContent);
 
         // Se isLeveros e faltou algo, tenta extrair das colunas específicas (Produto, Preço, Qtd, Subtotal)
@@ -227,7 +228,8 @@
 
         try {
             // Itens do carrinho (Dufrio ou Leveros)
-            const rows = Array.from(document.querySelectorAll('tr.item-info, table tbody tr, .cart-item, [class*="product-item"]'));
+            // Na Leveros as linhas ficam dentro de `.box-carrinho-produtos` ou `.boxCheckoutCarrinhoProdutoItem`
+            const rows = Array.from(document.querySelectorAll('tr.item-info, table tbody tr, .cart-item, [class*="product-item"], .box-carrinho-produtos'));
             if (rows.length > 0) {
                 data.items = rows.map(buildItemFromRow).filter(i => i.name && (i.unitPrice || i.quantity || i.subtotal));
             }
