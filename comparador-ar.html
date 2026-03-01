@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Busca Ar-Condicionado</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⇄</text></svg>">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;800;900&display=swap');
+
+    :root {
+      --green: #9BE20D;
+      --border: #1A1F24;
+      --bg-color: #000000;
+      --card-bg: #0B0F14;
+    }
+
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg-color);
+      color: #fff;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding-bottom: 60px;
+    }
+
+    h2 {
+      font-weight: 900;
+      margin: 40px 0 20px;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      font-size: 28px;
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .section {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      /* Mais quadrado estilo Nike */
+      cursor: pointer;
+      padding: 16px 24px;
+      color: #fff;
+      font-weight: 800;
+      text-transform: uppercase;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      border-color: #444;
+    }
+
+    button.selecionado {
+      background: var(--green);
+      color: #000;
+      border-color: var(--green);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(155, 226, 13, 0.3);
+    }
+
+    .tipo-btn {
+      width: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tipo-btn.selecionado {
+      background: rgba(155, 226, 13, 0.05);
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .tipo-btn img {
+      width: 140px;
+      /* Lighten permite que o claro sobressaia sem estourar o fundo branco como screen as vezes faz */
+      mix-blend-mode: lighten;
+      /* O Contraste alto e Brilho baixo obrigam o fundo "quase preto" da imagem a virar Preto Absoluto (desaparecendo no lighten) */
+      filter: contrast(1.6) brightness(0.7) drop-shadow(0 0 4px rgba(75, 216, 255, 0.2));
+      transition: transform 0.3s ease, filter 0.3s ease;
+    }
+
+    .tipo-btn:hover img {
+      transform: scale(1.05);
+      filter: contrast(1.8) brightness(0.9) drop-shadow(0 0 8px rgba(75, 216, 255, 0.4));
+    }
+
+    .tipo-btn.selecionado img {
+      filter: contrast(1.8) brightness(1.1);
+    }
+
+    #resultados {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 24px;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: #333;
+    }
+
+    .card strong {
+      font-weight: 800;
+      font-size: 18px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .card a {
+      text-decoration: none;
+      width: 100%;
+    }
+
+    .card button {
+      width: 100%;
+      background: #fff;
+      color: #000;
+      border: none;
+    }
+
+    .card button:hover {
+      background: var(--green);
+      color: #000;
+      transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+
+      .section {
+        flex-direction: column;
+      }
+
+      .tipo-btn,
+      .section button {
+        width: 100%;
+      }
+
+      .tipo-btn img {
+        width: 120px;
+      }
+
+      #resultados {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <h1>Busca Ar-Condicionado</h1>
+    <div class="sub">Buscador de preços de ar condicionado.</div>
+
+    <h2>Selecione o Tipo</h2>
+    <div id="tipos" class="section"></div>
+
+    <h2>Selecione os BTUs</h2>
+    <div id="btus" class="section"></div>
+
+    <h2>Selecione o Ciclo</h2>
+    <div id="ciclos" class="section"></div>
+
+    <h2>Resultados</h2>
+    <div id="resultados"></div>
+  </div>
+
+  <script>
+    let dados = [], tipoSelecionado = null, btusSelecionado = null, cicloSelecionado = null;
+    let ativoTipo = null, ativoBtu = null, ativoCiclo = null;
+
+    const imagens = {
+      "Hiwall": "img/hi_wall.png",
+      "Hi Wall": "img/hi_wall.png",
+      "Piso Teto": "img/piso_teto.png",
+      "Cassete": "img/cassete.png"
+    };
+
+    fetch("https://opensheet.elk.sh/1ml7XpwZfzM4ElRJb4G62b93VMqUw3jeprTtgxdigiD8/Sheet1")
+      .then(r => r.json()).then(j => { dados = j; gerarTipos(); });
+
+    function scrollPara(id) {
+      document.getElementById(id).scrollIntoView({ behavior: "smooth" });
+    }
+
+    function gerarTipos() {
+      const tipos = [...new Set(dados.map(i => i.Tipo))];
+      const div = document.getElementById("tipos");
+      div.innerHTML = "";
+      tipos.forEach(t => {
+        const b = document.createElement("button");
+        b.className = "tipo-btn";
+        b.innerHTML = `<div class="img-wrapper"><img src="${imagens[t] || ''}"></div><span>${t}</span>`;
+        b.onclick = () => {
+          if (ativoTipo) ativoTipo.classList.remove("selecionado");
+          b.classList.add("selecionado");
+          ativoTipo = b;
+          tipoSelecionado = t;
+          document.getElementById("btus").innerHTML = "";
+          document.getElementById("ciclos").innerHTML = "";
+          document.getElementById("resultados").innerHTML = "";
+          gerarBTUs();
+          scrollPara("btus");
+        };
+        div.appendChild(b);
+      });
+    }
+
+    function gerarBTUs() {
+      const btus = [...new Set(dados.filter(i => i.Tipo === tipoSelecionado).map(i => i.BTUs))];
+      const div = document.getElementById("btus");
+      div.innerHTML = "";
+      btus.forEach(b => {
+        const bt = document.createElement("button");
+        bt.textContent = b + " BTUs";
+        bt.onclick = () => {
+          if (ativoBtu) ativoBtu.classList.remove("selecionado");
+          bt.classList.add("selecionado");
+          ativoBtu = bt;
+          btusSelecionado = b;
+          document.getElementById("ciclos").innerHTML = "";
+          document.getElementById("resultados").innerHTML = "";
+          gerarCiclos();
+          scrollPara("ciclos");
+        };
+        div.appendChild(bt);
+      });
+    }
+
+    function gerarCiclos() {
+      const ciclos = [...new Set(dados.filter(i => i.Tipo === tipoSelecionado && i.BTUs == btusSelecionado).map(i => i.Ciclo))];
+      const div = document.getElementById("ciclos");
+      div.innerHTML = "";
+      ciclos.forEach(c => {
+        const bt = document.createElement("button");
+        bt.textContent = c;
+        bt.onclick = () => {
+          if (ativoCiclo) ativoCiclo.classList.remove("selecionado");
+          bt.classList.add("selecionado");
+          ativoCiclo = bt;
+          cicloSelecionado = c;
+          gerarResultados();
+          scrollPara("resultados");
+        };
+        div.appendChild(bt);
+      });
+    }
+
+    function gerarResultados() {
+      const res = dados.filter(i => i.Tipo === tipoSelecionado && i.BTUs == btusSelecionado && i.Ciclo === cicloSelecionado);
+      const div = document.getElementById("resultados");
+      div.innerHTML = "";
+      res.forEach(i => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<strong>${i.Site}</strong><br><br>
+    <a href="${i.Link}" target="_blank"><button>Abrir pesquisa</button></a>`;
+        div.appendChild(card);
+      });
+    }
+  </script>
+
+</body>
+
+</html>
