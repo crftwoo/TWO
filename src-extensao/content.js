@@ -34,8 +34,8 @@
 
             const fullTitle = generateSmartTitle(currentProductsList);
 
-            // Monta o texto de todos os produtos separados por linha (quebrando linhas ao invés da linha contínua)
-            const listText = currentProductsList.map(p => formatProductText(p.title, p.spot, p.install)).join('\n\n\n');
+            // Monta o texto de todos os produtos separados por linha e com o separador '_____' solicitado
+            const listText = currentProductsList.map(p => formatProductText(p.title, p.spot, p.install)).join('\n\n_____\n\n');
             const titleText = fullTitle.split('\n').map(l => `*${l}*`).join('\n');
             const textToCopy = `${titleText}\n\n${listText}`;
 
