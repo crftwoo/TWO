@@ -226,6 +226,56 @@
         text-align: left;
       }
     }
+
+    /* Tooltip container */
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+    }
+
+    /* Tooltip text */
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 250px;
+      background-color: var(--card-bg);
+      color: #fff;
+      text-align: center;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      /* Position above the text */
+      left: 50%;
+      margin-left: -125px;
+      /* Center the tooltip */
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 11px;
+      font-weight: normal;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Tooltip arrow */
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      /* At the bottom of the tooltip */
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: var(--border) transparent transparent transparent;
+    }
+
+    /* Show the tooltip text when you mouse over the tooltip container */
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
   </style>
 </head>
 
@@ -239,8 +289,11 @@
   <div class="menu" id="menu">
     <div class="menu-title">Ferramentas – Thiago</div>
     <div class="menu-grid" id="menuGrid"></div>
-    <div id="lastUpdate" style="margin-top: 40px; font-size: 12px; color: #555; text-align: center; font-weight: 500;">
-      Verificando última atualização...
+    <div style="margin-top: 40px; text-align: center;">
+      <div id="lastUpdate" class="tooltip" style="font-size: 12px; color: #555; font-weight: 500;">
+        Verificando última atualização...
+        <span class="tooltiptext" id="updateTooltip">Carregando detalhes...</span>
+      </div>
     </div>
   </div>
 
@@ -320,9 +373,14 @@
           const formattedTime = date.toLocaleTimeString("pt-BR", {
             hour: '2-digit', minute: '2-digit', second: '2-digit'
           });
-          document.getElementById("lastUpdate").textContent = `Última atualização do sistema: ${formattedDate} às ${formattedTime}`;
+
+          document.getElementById("lastUpdate").childNodes[0].nodeValue = `Última atualização do sistema: ${formattedDate} às ${formattedTime} `;
+          const commitMsg = data.commit.message || "Sem descrição.";
+          document.getElementById("updateTooltip").textContent = `O que mudou: "${commitMsg}"`;
+
         } else {
-          document.getElementById("lastUpdate").textContent = "Última atualização: Indisponível";
+          document.getElementById("lastUpdate").childNodes[0].nodeValue = "Última atualização: Indisponível ";
+          document.getElementById("updateTooltip").textContent = "Não foi possível carregar os detalhes.";
         }
       })
       .catch(error => {
