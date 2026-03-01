@@ -58,6 +58,8 @@ async function initPopup() {
             throw new Error('Não foi possível carregar a planilha.');
         }
 
+        const rows = await response.json();
+
         // Remove filtro hardcoded "Dufrio"
         const validRows = rows.filter(row =>
             row &&
