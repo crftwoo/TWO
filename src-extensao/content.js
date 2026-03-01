@@ -104,19 +104,35 @@
                 let imgSrc = imgEl.src || imgEl.getAttribute('data-src') || '';
                 if (!imgSrc || imgSrc.includes('data:image')) return;
 
-                // Preço à vista
-                const spotEl = card.querySelector('[class*="prices-cash"], [class*="price-no-price"]');
-                if (!spotEl) return;
-                let spotLine = spotEl.innerText.replace(/\s+/g, ' ').trim();
+                // 1. Pega o preço total (que na Leveros é o valor base parcelado inteiro)
+                const totalPriceEl = card.querySelector('[class*="price-no-price-of"], [class*="price-no-price"]');
+                let totalPrice = "";
+                if (totalPriceEl) {
+                    totalPrice = totalPriceEl.innerText.replace(/\s+/g, ' ').trim();
+                }
 
-                // Limpa o texto indesejado do spot (ex: "ou R$ 1.799,30 à vista" -> "R$ 1.799,30")
-                spotLine = spotLine.replace(/ou\s*/gi, '').replace(/\s*à vista/gi, '').trim();
-                spotLine = spotLine || 'R$ 0,00';
+                // 2. Pega o valor à vista (cash)
+                const cashPriceEl = card.querySelector('[class*="prices-cash"]');
+                let spotLine = "R$ 0,00 à vista";
+                if (cashPriceEl) {
+                    let cashRaw = cashPriceEl.innerText.replace(/\s+/g, ' ').trim();
+                    // Limpa "ou" e "à vista" para pegar só o numeral, depois padroniza
+                    let justNumber = cashRaw.replace(/ou\s*/gi, '').replace(/\s*à vista/gi, '').trim();
+                    if (!justNumber.includes('R$')) justNumber = 'R$ ' + justNumber;
+                    spotLine = justNumber + " à vista";
+                } else if (totalPrice) {
+                    spotLine = totalPrice + " à vista";
+                }
 
-                // Preço parcelado
+                // 3. Pega o valor das parcelas
                 const installEl = card.querySelector('[class*="price-installment"]');
-                let installLine = "À vista"; // Caso não tenha parcelamento
-                if (installEl) {
+                let installLine = "À vista"; // Fallback
+                if (installEl && totalPrice) {
+                    let installRaw = installEl.innerText.replace(/\s+/g, ' ').trim();
+                    // Remove "sem juros" etc para ficar só "10x de R$189,40"
+                    let justInstallment = installRaw.replace(/sem juros/gi, '').trim();
+                    installLine = `ou ${totalPrice} em ${justInstallment}`;
+                } else if (installEl) {
                     installLine = installEl.innerText.replace(/\s+/g, ' ').trim();
                 }
 
