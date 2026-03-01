@@ -458,12 +458,33 @@
                 }
             }
 
+            // Sobrescrita específica para Leveros baseada no DOM real
+            if (isLeveros) {
+                const resumoVals = document.querySelectorAll('.resumo-pedido-valores .box-v1');
+                resumoVals.forEach(row => {
+                    const text = row.innerText.toLowerCase();
+                    if (text.includes('frete') && text.includes('r$')) {
+                        const match = row.innerText.match(/r\$\s*[\d.,]+/i);
+                        if (match) data.shippingCost = match[0].trim();
+                    }
+                });
+
+                const totalLeveros = document.querySelector('.box-total-resumo-geral .box-total-v1, .box-total-v1');
+                if (totalLeveros) {
+                    const match = totalLeveros.innerText.match(/r\$\s*[\d.,]+/i);
+                    if (match) data.totalWithShipping = match[0].trim();
+                }
+
+                // Na Leveros não vamos mostrar o PIX no orçamento do carrinho
+                data.pixPrice = '';
+            }
+
             // Se ainda não tiver parcelamento (Leveros não mostra sempre no carrinho), calcula 10x do total
             if (!data.installmentPrice && data.totalWithShipping) {
                 const totalNum = parseCurrencyValue(data.totalWithShipping);
                 if (totalNum > 0) {
                     const inst = totalNum / 10;
-                    data.installmentPrice = `em 10 x de R$ ${formatCurrency(inst)}`;
+                    data.installmentPrice = `10x de R$ ${formatCurrency(inst)}`;
                 }
             }
 
@@ -497,9 +518,9 @@
 
     function extractInstallmentInfo(text) {
         if (!text) return '';
-        const match = text.match(/em\s+(\d+)\s*x\s+de\s+r\$\s*([\d.,]+)/i);
+        const match = text.match(/(?:em\s+)?(\d+)\s*x\s+de\s+r\$\s*([\d.,]+)/i);
         if (match) {
-            return `em ${match[1]} x de R$ ${match[2]}`;
+            return `${match[1]}x de R$ ${match[2]}`;
         }
         return '';
     }
