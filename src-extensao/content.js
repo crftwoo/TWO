@@ -75,31 +75,40 @@
         const products = [];
         const seenTitles = new Set();
 
-        const cards = document.querySelectorAll('.card-product');
-        if (cards.length === 0) {
-            console.log("Leveros Extrator: Nenhum .card-product encontrado na tela.");
+        // O Vue.js na Leveros pode atrasar a renderização. 
+        // Vamos procurar pela classe base ou pelos containers data-v-*
+        const cards = document.querySelectorAll('.card-product, [class*="card-product"]');
+
+        // Filtra apenas os nós que realmente parecem ser o card principal de um produto
+        // (ignorando sub-elementos internos que também possuam a classe base no nome)
+        const mainCards = Array.from(cards).filter(c => {
+            return c.querySelector('.card-product_name') || c.querySelector('h3[class*="card-product"]');
+        });
+
+        if (mainCards.length === 0) {
+            console.log("Leveros Extrator: Seletores não encontraram produtos prontos. A página pode estar carregando o Vue/Nuxt...");
             return products;
         }
 
-        cards.forEach(card => {
+        mainCards.forEach(card => {
             try {
-                // Título
-                const titleEl = card.querySelector('.card-product_name');
+                // Título - Busca pela classe específica ou qualquer h3 dentro do card
+                const titleEl = card.querySelector('.card-product_name, h3[class*="product_name"]');
                 if (!titleEl) return;
                 const titleStr = titleEl.innerText.trim();
 
                 // Imagem
-                const imgEl = card.querySelector('.card-product_image');
+                const imgEl = card.querySelector('.card-product_image, img[class*="product_image"]');
                 if (!imgEl) return;
                 let imgSrc = imgEl.src || imgEl.getAttribute('data-src') || '';
                 if (!imgSrc || imgSrc.includes('data:image')) return;
 
-                // Preço à vista
-                const spotEl = card.querySelector('.card-product_prices-cash, .card-product_price-no-price-of, [class*="product_prices-cash"]');
+                // Preço à vista (Tenta várias combinações de classes do print)
+                const spotEl = card.querySelector('.card-product_prices-cash, .card-product_price-no-price-of, [class*="product_prices-cash"], p[class*="price-no-price"]');
                 if (!spotEl) return;
                 let spotLine = spotEl.innerText.replace(/\s+/g, ' ').trim();
 
-                // Remove o texto indesejado do spot
+                // Limpa o texto indesejado do spot (ex: "ou R$ 1.799,30 à vista" -> "R$ 1.799,30")
                 spotLine = spotLine.replace(/ou\s*/gi, '').replace(/\s*à vista/gi, '').trim();
                 spotLine = spotLine || 'R$ 0,00';
 
@@ -467,15 +476,38 @@
     }
 
     function init() {
+        // Evita injetar múltiplos painéis
+        if (document.getElementById('dufrio-ext-panel')) return;
         const contentDiv = createPanel();
 
-        // Timeout longo para garantir que preços via JS carregaram (ex: "x-data='initPriceBox...'")
-        setTimeout(() => {
+        function tryExtract() {
             const products = extractData();
-            renderProducts(contentDiv, products);
-        }, 1500);
+            if (products.length > 0) {
+                renderProducts(contentDiv, products);
+                return true;
+            }
+            return false;
+        }
 
-        // Opcional: recarregar as buscas se rolar até o fim da página
+        // Tenta buscar no load
+        if (!tryExtract()) {
+            contentDiv.innerHTML = '<p style="text-align:center;">Aguardando o carregamento dos produtos na página...</p>';
+
+            // Se não encontrou, o site pode usar renderização dinâmica pesada (como o Vue/Nuxt da Leveros).
+            // Tenta a cada 1.5s até encontrar ou desistir após 10 tentativas (15s).
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts++;
+                if (tryExtract() || attempts >= 10) {
+                    clearInterval(interval);
+                    if (attempts >= 10 && document.querySelectorAll('.dufrio-ext-card').length === 0) {
+                        contentDiv.innerHTML = '<p style="text-align:center;color:#666;">Não foi possível carregar os produtos. A página mudou seu layout ou a busca está vazia.</p>';
+                    }
+                }
+            }, 1500);
+        }
+
+        // MutationObserver para recarregar as buscas se rolar até o fim da página (infinite scroll / paginação Ajax)
         let lastScrollTimeout;
         window.addEventListener('scroll', () => {
             clearTimeout(lastScrollTimeout);
@@ -488,7 +520,7 @@
         });
     }
 
-    // Dispara
+    // Dispara a extração assim que o DOM estiver pronto ou interativo
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         init();
     } else {
