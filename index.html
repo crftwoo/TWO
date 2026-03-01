@@ -239,6 +239,9 @@
   <div class="menu" id="menu">
     <div class="menu-title">Ferramentas – Thiago</div>
     <div class="menu-grid" id="menuGrid"></div>
+    <div id="lastUpdate" style="margin-top: 40px; font-size: 12px; color: #555; text-align: center; font-weight: 500;">
+      Verificando última atualização...
+    </div>
   </div>
 
   <div class="content" id="content">
@@ -304,6 +307,27 @@
       menu.style.display = "flex";
       tabs.style.display = "none";
     }
+
+    // Busca a data do último commit no GitHub
+    fetch("https://api.github.com/repos/crftwoo/TWO/commits/main")
+      .then(response => response.json())
+      .then(data => {
+        if (data && data.commit && data.commit.author && data.commit.author.date) {
+          const date = new Date(data.commit.author.date);
+          const formattedDate = date.toLocaleDateString("pt-BR", {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+          });
+          const formattedTime = date.toLocaleTimeString("pt-BR", {
+            hour: '2-digit', minute: '2-digit', second: '2-digit'
+          });
+          document.getElementById("lastUpdate").textContent = `Última atualização do sistema: ${formattedDate} às ${formattedTime}`;
+        } else {
+          document.getElementById("lastUpdate").textContent = "Última atualização: Indisponível";
+        }
+      })
+      .catch(error => {
+        document.getElementById("lastUpdate").textContent = "Última atualização: Offline";
+      });
   </script>
 </body>
 
