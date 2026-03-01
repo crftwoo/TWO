@@ -80,9 +80,10 @@
         const cards = document.querySelectorAll('.card-product, [class*="card-product"]');
 
         // Filtra apenas os nós que realmente parecem ser o card principal de um produto
-        // (ignorando sub-elementos internos que também possuam a classe base no nome)
+        // (precisa ter um título e uma imagem dentro)
         const mainCards = Array.from(cards).filter(c => {
-            return c.querySelector('.card-product_name') || c.querySelector('h3[class*="card-product"]');
+            return c.querySelector('[class*="product__name"], [class*="product_name"]')
+                && c.querySelector('img[class*="product__image"], img[class*="product_image"]');
         });
 
         if (mainCards.length === 0) {
@@ -92,19 +93,19 @@
 
         mainCards.forEach(card => {
             try {
-                // Título - Busca pela classe específica ou qualquer h3 dentro do card
-                const titleEl = card.querySelector('.card-product_name, h3[class*="product_name"]');
+                // Título
+                const titleEl = card.querySelector('[class*="product__name"], [class*="product_name"]');
                 if (!titleEl) return;
                 const titleStr = titleEl.innerText.trim();
 
                 // Imagem
-                const imgEl = card.querySelector('.card-product_image, img[class*="product_image"]');
+                const imgEl = card.querySelector('img[class*="product__image"], img[class*="product_image"]');
                 if (!imgEl) return;
                 let imgSrc = imgEl.src || imgEl.getAttribute('data-src') || '';
                 if (!imgSrc || imgSrc.includes('data:image')) return;
 
-                // Preço à vista (Tenta várias combinações de classes do print)
-                const spotEl = card.querySelector('.card-product_prices-cash, .card-product_price-no-price-of, [class*="product_prices-cash"], p[class*="price-no-price"]');
+                // Preço à vista
+                const spotEl = card.querySelector('[class*="prices-cash"], [class*="price-no-price"]');
                 if (!spotEl) return;
                 let spotLine = spotEl.innerText.replace(/\s+/g, ' ').trim();
 
@@ -113,7 +114,7 @@
                 spotLine = spotLine || 'R$ 0,00';
 
                 // Preço parcelado
-                const installEl = card.querySelector('.card-product_price-installments, [class*="product_price-installments"]');
+                const installEl = card.querySelector('[class*="price-installment"]');
                 let installLine = "À vista"; // Caso não tenha parcelamento
                 if (installEl) {
                     installLine = installEl.innerText.replace(/\s+/g, ' ').trim();
