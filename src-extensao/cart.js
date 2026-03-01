@@ -462,17 +462,26 @@
             if (isLeveros) {
                 const resumoVals = document.querySelectorAll('.resumo-pedido-valores .box-v1');
                 resumoVals.forEach(row => {
-                    const text = row.innerText.toLowerCase();
+                    const text = (row.textContent || row.innerText || '').toLowerCase();
                     if (text.includes('frete') && text.includes('r$')) {
-                        const match = row.innerText.match(/r\$\s*[\d.,]+/i);
+                        const match = (row.textContent || row.innerText || '').match(/r\$\s*[\d.,]+/i);
                         if (match) data.shippingCost = match[0].trim();
                     }
                 });
 
                 const totalLeveros = document.querySelector('.box-total-resumo-geral .box-total-v1, .box-total-v1');
                 if (totalLeveros) {
-                    const match = totalLeveros.innerText.match(/r\$\s*[\d.,]+/i);
+                    const match = (totalLeveros.textContent || totalLeveros.innerText || '').match(/r\$\s*[\d.,]+/i);
                     if (match) data.totalWithShipping = match[0].trim();
+                }
+
+                // Fallback infalível: Soma Subtotal + Frete caso o HTML da Leveros pisque ou mude
+                if (!data.totalWithShipping && data.subtotal) {
+                    const subNum = parseCurrencyValue(data.subtotal);
+                    const shipNum = data.shippingCost ? parseCurrencyValue(data.shippingCost) : 0;
+                    if (subNum > 0) {
+                        data.totalWithShipping = 'R$ ' + formatCurrency(subNum + shipNum);
+                    }
                 }
 
                 // Na Leveros não vamos mostrar o PIX no orçamento do carrinho
