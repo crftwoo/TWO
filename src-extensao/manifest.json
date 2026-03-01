@@ -44,7 +44,8 @@
         },
         {
             "matches": [
-                "https://www.dufrio.com.br/checkout/cart/"
+                "https://www.dufrio.com.br/checkout/cart/*",
+                "https://www.vendas.leveros.com.br/checkout/carrinho*"
             ],
             "css": [
                 "cart.css"
