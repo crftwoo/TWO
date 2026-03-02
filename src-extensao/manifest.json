@@ -13,7 +13,8 @@
         "https://www.dufrio.com.br/*",
         "https://www.leveros.com.br/*",
         "https://parceiro.centralar.com.br/*",
-        "https://opensheet.elk.sh/*"
+        "https://opensheet.elk.sh/*",
+        "https://castaticstorage.blob.core.windows.net/*"
     ],
     "externally_connectable": {
         "matches": [

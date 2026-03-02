@@ -564,42 +564,67 @@
             }
 
             img.onclick = async () => {
-                try {
-                    // Criar um canvas para desenhar a imagem e extrair os pixels nativamente para o Windows
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.naturalWidth || img.width;
-                    canvas.height = img.naturalHeight || img.height;
-                    const ctx = canvas.getContext('2d');
+                if (window.location.host.includes('centralar')) {
+                    try {
+                        // Central Ar: Usa o Background Service Worker para realizar o fetch da imagem sem bloqueio CORS do site
+                        const response = await new Promise((resolve, reject) => {
+                            chrome.runtime.sendMessage(
+                                { action: "fetchImageBackground", url: p.image },
+                                (reply) => {
+                                    if (chrome.runtime.lastError) return reject(chrome.runtime.lastError);
+                                    if (reply && reply.success) resolve(reply.dataUrl);
+                                    else reject(new Error(reply?.error || 'Erro BGW'));
+                                }
+                            );
+                        });
 
-                    // Fundo branco para garantir que transparências fiquem com fundo (ex: jpg/png no WhatsApp)
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
-
-                    // Converter canvas para Blob PNG (formato recomendado para área de transferência)
-                    canvas.toBlob(blob => {
-                        if (!blob) throw new Error("Falha ao gerar blob do canvas (Tainted canvas / CORS)");
+                        const fetchResponse = await fetch(response);
+                        const blob = await fetchResponse.blob();
 
                         const item = new ClipboardItem({ "image/png": blob });
-                        navigator.clipboard.write([item]).then(() => {
-                            const originalBorder = img.style.border;
-                            img.style.border = '3px solid #28a745'; // Borda verde indicando sucesso arquivo img
-                            setTimeout(() => img.style.border = originalBorder, 500);
-                        }).catch(err => {
-                            console.error("Erro no write do clipboard:", err);
-                            fallbackCopyUrl();
-                        });
-                    }, "image/png");
+                        await navigator.clipboard.write([item]);
 
-                } catch (err) {
-                    console.error('Falha ao tentar usar canvas (Possível Tainted por CORS), fallback copy link...', err);
-                    fallbackCopyUrl();
+                        const originalBorder = img.style.border;
+                        img.style.border = '3px solid #28a745'; // Sucesso background proxy
+                        setTimeout(() => img.style.border = originalBorder, 500);
+                    } catch (err) {
+                        console.error('Falha no proxy de background da Central Ar, copy link...', err);
+                        fallbackCopyUrl();
+                    }
+                } else {
+                    // Outros sites (Dufrio/Leveros): Usam Canvas convencional sem problemas de CORS porque injetamos crossOrigin="Anonymous"
+                    try {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = img.naturalWidth || img.width;
+                        canvas.height = img.naturalHeight || img.height;
+                        const ctx = canvas.getContext('2d');
+
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 0, 0);
+
+                        canvas.toBlob(blob => {
+                            if (!blob) throw new Error("Tainted canvas / CORS");
+
+                            const item = new ClipboardItem({ "image/png": blob });
+                            navigator.clipboard.write([item]).then(() => {
+                                const originalBorder = img.style.border;
+                                img.style.border = '3px solid #28a745'; // Verde nativo
+                                setTimeout(() => img.style.border = originalBorder, 500);
+                            }).catch(err => {
+                                fallbackCopyUrl();
+                            });
+                        }, "image/png");
+
+                    } catch (err) {
+                        fallbackCopyUrl();
+                    }
                 }
 
                 function fallbackCopyUrl() {
                     navigator.clipboard.writeText(p.image).then(() => {
                         const originalBorder = img.style.border;
-                        img.style.border = '3px solid #ffc107'; // Borda amarela = linkURL
+                        img.style.border = '3px solid #ffc107';
                         setTimeout(() => img.style.border = originalBorder, 500);
                     });
                 }
