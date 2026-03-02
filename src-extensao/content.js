@@ -104,9 +104,22 @@
 
                 for (let el of imgElements) {
                     let potentialSrc = el.getAttribute('data-src') || el.getAttribute('data-lazy-src') || el.src;
-                    if (potentialSrc && !potentialSrc.startsWith('data:image')) {
+
+                    // Prioriza a imagem oficial que fica no blob da Central Ar
+                    if (potentialSrc && potentialSrc.includes('castaticstorage')) {
                         imgSrc = potentialSrc;
                         break;
+                    }
+                }
+
+                // Fallback de segurança: se mudar a hospedagem oficial, pega a primeira foto que não seja ícone svg ou ui
+                if (imgSrc === 'https://via.placeholder.com/150?text=Sem+Foto') {
+                    for (let el of imgElements) {
+                        let potentialSrc = el.getAttribute('data-src') || el.getAttribute('data-lazy-src') || el.src;
+                        if (potentialSrc && !potentialSrc.startsWith('data:image') && !potentialSrc.includes('.svg') && !potentialSrc.includes('/_ui/')) {
+                            imgSrc = potentialSrc;
+                            break;
+                        }
                     }
                 }
 
