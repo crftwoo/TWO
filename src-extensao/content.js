@@ -83,26 +83,34 @@
         const products = [];
         const seenTitles = new Set();
 
-        const cards = document.querySelectorAll('.pdc_product-item');
+        // Tenta achar com .pdc_product-item, fallback para [class*="product-item"] ou colunas bootstrap
+        const cards = document.querySelectorAll('.pdc_product-item, .card-product, [class*="product-item"], [class*="product_item"]');
 
         if (cards.length === 0) {
-            console.log("Central Ar Extrator: Seletores não encontraram produtos.");
+            console.log("Central Ar Extrator: Seletores não encontraram produtos (0 cards).");
             return products;
         }
 
         cards.forEach(card => {
             try {
                 // Título
-                const titleEl = card.querySelector('a.name');
+                let titleEl = card.querySelector('a.name, .product-name, [class*="title"], h2, h3');
                 if (!titleEl) return;
                 const titleStr = titleEl.innerText.trim();
 
                 // Imagem
-                const imgEl = card.querySelector('a.thumb img');
-                if (!imgEl) return;
+                const imgEl = card.querySelector('a.thumb img, img[class*="thumb"], img');
+                let imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
 
-                // Na Central Ar, imagens podem ter lazy loading
-                let imgSrc = imgEl.getAttribute('data-src') || imgEl.getAttribute('data-lazy-src') || imgEl.src || '';
+                if (imgEl) {
+                    // Na Central Ar, imagens podem ter lazy loading
+                    imgSrc = imgEl.getAttribute('data-src') || imgEl.getAttribute('data-lazy-src') || imgEl.src || imgSrc;
+
+                    // Se ainda for um data:image genérico de preenchimento, ignora
+                    if (imgSrc.startsWith('data:image')) {
+                        imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
+                    }
+                }
 
                 // Se ainda for um data:image genérico de preenchimento, ignora
                 if (!imgSrc || imgSrc.startsWith('data:image')) {
@@ -152,7 +160,10 @@
                     }
                 }
 
-                if (!spotLine || (!installLine && !spotLine)) return;
+                if (!spotLine || (!installLine && !spotLine)) {
+                    console.log("Central Ar Extrator: Produto ignorado pois não encontrou preço:", titleStr);
+                    return;
+                }
 
                 if (!seenTitles.has(titleStr)) {
                     seenTitles.add(titleStr);
@@ -163,7 +174,7 @@
                         install: installLine
                     });
                 }
-            } catch (e) { console.error('Central Ar Erro:', e); }
+            } catch (e) { console.error('Central Ar Erro no card:', e); }
         });
 
         return products;
