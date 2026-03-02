@@ -555,46 +555,29 @@
 
             // Copiar imagem ao clicar nela
             img.style.cursor = 'pointer';
-            img.title = 'Clique para copiar a imagem';
-            img.crossOrigin = "Anonymous"; // Importante para tentar burlar CORS interno do Chrome
+            img.title = 'Clique para tentar copiar a imagem (ou o link)';
 
             img.onclick = async () => {
                 try {
-                    // Criar um canvas para desenhar a imagem e extrair os pixels
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.naturalWidth || img.width;
-                    canvas.height = img.naturalHeight || img.height;
-                    const ctx = canvas.getContext('2d');
+                    // Tenta baixar a imagem via fetch para burlar o canvas corrompido (tainted)
+                    const response = await fetch(p.image, { mode: 'cors' });
+                    if (!response.ok) throw new Error("CORS bloqued fetch ou erro HTTP");
 
-                    // Fundo branco para garantir que transparências fiquem com fundo (ex: jpg/png no WhatsApp)
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(img, 0, 0);
+                    const blob = await response.blob();
+                    const item = new ClipboardItem({ "image/png": blob });
+                    await navigator.clipboard.write([item]);
 
-                    // Converter canvas para Blob PNG (formato recomendado para área de transferência)
-                    canvas.toBlob(blob => {
-                        if (!blob) throw new Error("Falha ao gerar blob do canvas");
-
-                        const item = new ClipboardItem({ "image/png": blob });
-                        navigator.clipboard.write([item]).then(() => {
-                            const originalBorder = img.style.border;
-                            img.style.border = '3px solid #28a745'; // Borda verde indicando sucesso
-                            setTimeout(() => img.style.border = originalBorder, 500);
-                        }).catch(err => {
-                            console.error("Erro no write do clipboard:", err);
-                            fallbackCopyUrl();
-                        });
-                    }, "image/png");
+                    const originalBorder = img.style.border;
+                    img.style.border = '3px solid #28a745'; // Verde = copiou arquivo
+                    setTimeout(() => img.style.border = originalBorder, 500);
 
                 } catch (err) {
-                    console.error('Falha ao tentar usar canvas, tentando fetch/fallback...', err);
-                    fallbackCopyUrl();
-                }
+                    console.error('Fetch da imagem falhou (provável CORS blocado), fallback pro URL...', err);
 
-                function fallbackCopyUrl() {
+                    // Fallback para Copiar Link
                     navigator.clipboard.writeText(p.image).then(() => {
                         const originalBorder = img.style.border;
-                        img.style.border = '3px solid #ffc107'; // Borda amarela indicando sucesso com fallback (URL)
+                        img.style.border = '3px solid #ffc107'; // Amarelo = copiou URL
                         setTimeout(() => img.style.border = originalBorder, 500);
                     });
                 }
