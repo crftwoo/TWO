@@ -105,14 +105,23 @@
 
                 if (imgEl) {
                     // Tenta achar a URL real em ordem de prioridade
-                    const attrs = ['src', 'data-src', 'data-lazy-src'];
+                    const attrs = ['data-src', 'src', 'data-lazy-src', 'srcset'];
                     for (let attr of attrs) {
-                        let potentialSrc = attr === 'src' ? imgEl.src : imgEl.getAttribute(attr);
+                        let potentialSrc = imgEl.getAttribute(attr);
 
                         // Garante que é uma string válida, não é base64 vazia e não é um ícone SVG
                         if (potentialSrc && typeof potentialSrc === 'string' && !potentialSrc.startsWith('data:image') && !potentialSrc.includes('.svg')) {
-                            imgSrc = potentialSrc;
-                            break;
+
+                            // Se tiver espaço (ex: srcset), pega só o primeiro link
+                            if (potentialSrc.includes(' ')) {
+                                potentialSrc = potentialSrc.split(' ')[0];
+                            }
+
+                            // Aceita se tiver nossa string alvo ou for uma imagem comum
+                            if (potentialSrc.includes('castaticstorage') || potentialSrc.match(/\.(jpe?g|png|webp)/i)) {
+                                imgSrc = potentialSrc;
+                                break;
+                            }
                         }
                     }
                 }
