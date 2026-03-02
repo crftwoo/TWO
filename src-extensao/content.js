@@ -567,7 +567,7 @@
                 if (window.location.host.includes('centralar')) {
                     try {
                         // Central Ar: Usa o Background Service Worker para realizar o fetch da imagem sem bloqueio CORS do site
-                        const response = await new Promise((resolve, reject) => {
+                        const dataUrl = await new Promise((resolve, reject) => {
                             chrome.runtime.sendMessage(
                                 { action: "fetchImageBackground", url: p.image },
                                 (reply) => {
@@ -578,15 +578,37 @@
                             );
                         });
 
-                        const fetchResponse = await fetch(response);
-                        const blob = await fetchResponse.blob();
+                        // Converte o DataURL para PNG usando Canvas (evita erro de CSP bloqueando fetch de data: URIs)
+                        await new Promise((resolve, reject) => {
+                            const imgObj = new Image();
+                            imgObj.onload = () => {
+                                try {
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = imgObj.naturalWidth || imgObj.width;
+                                    canvas.height = imgObj.naturalHeight || imgObj.height;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.fillStyle = '#FFFFFF';
+                                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                                    ctx.drawImage(imgObj, 0, 0);
 
-                        const item = new ClipboardItem({ "image/png": blob });
-                        await navigator.clipboard.write([item]);
+                                    canvas.toBlob(blob => {
+                                        if (!blob) return reject(new Error("Falha ao criar blob do canvas intermediário"));
 
-                        const originalBorder = img.style.border;
-                        img.style.border = '3px solid #28a745'; // Sucesso background proxy
-                        setTimeout(() => img.style.border = originalBorder, 500);
+                                        const item = new ClipboardItem({ "image/png": blob });
+                                        navigator.clipboard.write([item]).then(() => {
+                                            const originalBorder = img.style.border;
+                                            img.style.border = '3px solid #28a745';
+                                            setTimeout(() => img.style.border = originalBorder, 500);
+                                            resolve();
+                                        }).catch(reject);
+                                    }, "image/png");
+                                } catch (e) {
+                                    reject(e);
+                                }
+                            };
+                            imgObj.onerror = reject;
+                            imgObj.src = dataUrl;
+                        });
                     } catch (err) {
                         console.error('Falha no proxy de background da Central Ar, copy link...', err);
                         fallbackCopyUrl();
