@@ -559,20 +559,36 @@
 
             img.onclick = async () => {
                 try {
-                    // Tenta baixar a imagem via fetch para burlar o canvas corrompido (tainted)
-                    const response = await fetch(p.image, { mode: 'cors' });
-                    if (!response.ok) throw new Error("CORS bloqued fetch ou erro HTTP");
+                    // Solução definitiva Anti-CORS usando Proxy no Background Worker
+                    const response = await new Promise((resolve, reject) => {
+                        chrome.runtime.sendMessage(
+                            { action: "fetchImageBackground", url: p.image },
+                            (response) => {
+                                if (chrome.runtime.lastError) {
+                                    return reject(chrome.runtime.lastError);
+                                }
+                                if (response && response.success) {
+                                    resolve(response.dataUrl);
+                                } else {
+                                    reject(new Error(response?.error || 'Unknown background fetch error'));
+                                }
+                            }
+                        );
+                    });
 
-                    const blob = await response.blob();
+                    // Converter DataURL (Base64) gerada pelo background de volta para Blob
+                    const fetchResponse = await fetch(response);
+                    const blob = await fetchResponse.blob();
+
                     const item = new ClipboardItem({ "image/png": blob });
                     await navigator.clipboard.write([item]);
 
                     const originalBorder = img.style.border;
-                    img.style.border = '3px solid #28a745'; // Verde = copiou arquivo
+                    img.style.border = '3px solid #28a745'; // Verde = copiou arquivo com sucesso
                     setTimeout(() => img.style.border = originalBorder, 500);
 
                 } catch (err) {
-                    console.error('Fetch da imagem falhou (provável CORS blocado), fallback pro URL...', err);
+                    console.error('Falha dupla no fetch background/blob, fallback pro URL...', err);
 
                     // Fallback para Copiar Link
                     navigator.clipboard.writeText(p.image).then(() => {

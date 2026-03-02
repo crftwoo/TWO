@@ -11,6 +11,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
         return true; // Keep the message channel open for the async response
     }
+
+    if (request.action === "fetchImageBackground" && request.url) {
+        fetch(request.url)
+            .then(res => res.blob())
+            .then(blob => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    sendResponse({ success: true, dataUrl: reader.result });
+                };
+                reader.onerror = () => {
+                    sendResponse({ success: false, error: "Failed to read blob" });
+                };
+                reader.readAsDataURL(blob);
+            })
+            .catch(err => {
+                sendResponse({ success: false, error: err.message });
+            });
+        return true; // Keep channel open for async fetch
+    }
 });
 
 async function handleScrapeRequest(url) {
