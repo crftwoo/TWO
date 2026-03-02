@@ -100,8 +100,14 @@
                 // Imagem
                 const imgEl = card.querySelector('a.thumb img');
                 if (!imgEl) return;
-                let imgSrc = imgEl.src || imgEl.getAttribute('data-src') || '';
-                if (!imgSrc || imgSrc.includes('data:image')) return;
+
+                // Na Central Ar, imagens podem ter lazy loading
+                let imgSrc = imgEl.getAttribute('data-src') || imgEl.getAttribute('data-lazy-src') || imgEl.src || '';
+
+                // Se ainda for um data:image genérico de preenchimento, ignora
+                if (!imgSrc || imgSrc.startsWith('data:image')) {
+                    imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
+                }
 
                 // Valores
                 let spotLine = "";
