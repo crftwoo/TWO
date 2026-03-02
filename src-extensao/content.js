@@ -555,45 +555,51 @@
 
             // Copiar imagem ao clicar nela
             img.style.cursor = 'pointer';
-            img.title = 'Clique para tentar copiar a imagem (ou o link)';
+            img.title = 'Clique para copiar a imagem';
+
+            // ATENÇÃO: A Central Ar (castaticstorage) bloqueia o carregamento visual da imagem se usarmos crossOrigin
+            // Mas a Dufrio e Leveros precisam disso para podermos extrair o canvas no clipboard_item depois.
+            if (!window.location.host.includes('centralar')) {
+                img.crossOrigin = "Anonymous";
+            }
 
             img.onclick = async () => {
                 try {
-                    // Solução definitiva Anti-CORS usando Proxy no Background Worker
-                    const response = await new Promise((resolve, reject) => {
-                        chrome.runtime.sendMessage(
-                            { action: "fetchImageBackground", url: p.image },
-                            (response) => {
-                                if (chrome.runtime.lastError) {
-                                    return reject(chrome.runtime.lastError);
-                                }
-                                if (response && response.success) {
-                                    resolve(response.dataUrl);
-                                } else {
-                                    reject(new Error(response?.error || 'Unknown background fetch error'));
-                                }
-                            }
-                        );
-                    });
+                    // Criar um canvas para desenhar a imagem e extrair os pixels nativamente para o Windows
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.naturalWidth || img.width;
+                    canvas.height = img.naturalHeight || img.height;
+                    const ctx = canvas.getContext('2d');
 
-                    // Converter DataURL (Base64) gerada pelo background de volta para Blob
-                    const fetchResponse = await fetch(response);
-                    const blob = await fetchResponse.blob();
+                    // Fundo branco para garantir que transparências fiquem com fundo (ex: jpg/png no WhatsApp)
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(img, 0, 0);
 
-                    const item = new ClipboardItem({ "image/png": blob });
-                    await navigator.clipboard.write([item]);
+                    // Converter canvas para Blob PNG (formato recomendado para área de transferência)
+                    canvas.toBlob(blob => {
+                        if (!blob) throw new Error("Falha ao gerar blob do canvas (Tainted canvas / CORS)");
 
-                    const originalBorder = img.style.border;
-                    img.style.border = '3px solid #28a745'; // Verde = copiou arquivo com sucesso
-                    setTimeout(() => img.style.border = originalBorder, 500);
+                        const item = new ClipboardItem({ "image/png": blob });
+                        navigator.clipboard.write([item]).then(() => {
+                            const originalBorder = img.style.border;
+                            img.style.border = '3px solid #28a745'; // Borda verde indicando sucesso arquivo img
+                            setTimeout(() => img.style.border = originalBorder, 500);
+                        }).catch(err => {
+                            console.error("Erro no write do clipboard:", err);
+                            fallbackCopyUrl();
+                        });
+                    }, "image/png");
 
                 } catch (err) {
-                    console.error('Falha dupla no fetch background/blob, fallback pro URL...', err);
+                    console.error('Falha ao tentar usar canvas (Possível Tainted por CORS), fallback copy link...', err);
+                    fallbackCopyUrl();
+                }
 
-                    // Fallback para Copiar Link
+                function fallbackCopyUrl() {
                     navigator.clipboard.writeText(p.image).then(() => {
                         const originalBorder = img.style.border;
-                        img.style.border = '3px solid #ffc107'; // Amarelo = copiou URL
+                        img.style.border = '3px solid #ffc107'; // Borda amarela = linkURL
                         setTimeout(() => img.style.border = originalBorder, 500);
                     });
                 }
