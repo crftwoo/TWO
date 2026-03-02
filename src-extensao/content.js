@@ -119,6 +119,10 @@
 
                             // Aceita se tiver nossa string alvo ou for uma imagem comum
                             if (potentialSrc.includes('castaticstorage') || potentialSrc.match(/\.(jpe?g|png|webp)/i)) {
+                                // Corrige URLs relativas de protocolo (começando com //)
+                                if (potentialSrc.startsWith('//')) {
+                                    potentialSrc = 'https:' + potentialSrc;
+                                }
                                 imgSrc = potentialSrc;
                                 break;
                             }
