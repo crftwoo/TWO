@@ -110,24 +110,39 @@
                 // À vista - Na Central Ar fica nas classes .prices
                 const pricesSection = card.querySelector('.prices');
                 if (pricesSection) {
-                    const bestPriceEl = pricesSection.querySelector('.bestPrice, [class*="best-price"]');
-                    if (bestPriceEl) {
-                        spotLine = bestPriceEl.innerText.replace(/\s+/g, ' ').trim() + " à vista";
+                    // Preço à vista está no span.price-info
+                    const spotEl = pricesSection.querySelector('.price-info');
+                    if (spotEl) {
+                        let rawSpot = spotEl.innerText.replace(/\s+/g, ' ').trim();
+                        // Remove "no pix (X% de desconto)"
+                        rawSpot = rawSpot.replace(/no pix.*/gi, '').trim();
+                        if (rawSpot) spotLine = rawSpot + " à vista";
                     }
 
-                    // Se não tiver price class específica, tenta catar o PIX no texto bruto todo
+                    // Se não encontrar no price-info, tenta fallback no bestPrice
                     if (!spotLine) {
-                        const pricesText = pricesSection.innerText.toLowerCase();
-                        if (pricesText.includes('r$')) {
-                            const pixMatch = pricesSection.innerText.match(/r\$\s*[\d.,]+/i);
-                            if (pixMatch) spotLine = pixMatch[0].trim() + " à vista";
+                        const bestPriceEl = pricesSection.querySelector('.bestPrice, [class*="best-price"]');
+                        if (bestPriceEl) {
+                            spotLine = bestPriceEl.innerText.replace(/\s+/g, ' ').trim() + " à vista";
                         }
                     }
 
-                    // Parcelado - Fica geralmente dentro do .prices logo depois
-                    const installmentMatch = pricesSection.innerText.match(/ou\s+r\$\s*[\d.,]+\s+em\s+\d+\s*x\s+de\s+r\$\s*[\d.,]+/i);
-                    if (installmentMatch) {
-                        installLine = installmentMatch[0].trim();
+                    // Preço parcelado está na div.price_row
+                    const installEl = pricesSection.querySelector('.price_row');
+                    if (installEl) {
+                        let rawInstall = installEl.innerText.replace(/\s+/g, ' ').trim();
+                        // Geralmente vem: "ou R$ 1.799,00 em 10x de R$ 179,90 sem juros"
+                        // Vamos limpar o "sem juros"
+                        rawInstall = rawInstall.replace(/sem juros/gi, '').trim();
+                        if (rawInstall) installLine = rawInstall;
+                    }
+
+                    // Fallback para parcelado no texto inteiro se a div faltar
+                    if (!installLine) {
+                        const installmentMatch = pricesSection.innerText.match(/ou\s+r\$\s*[\d.,]+\s+em\s+\d+\s*x\s+de\s+r\$\s*[\d.,]+/i);
+                        if (installmentMatch) {
+                            installLine = installmentMatch[0].trim();
+                        }
                     }
                 }
 
