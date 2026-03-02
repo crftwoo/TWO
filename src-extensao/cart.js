@@ -227,6 +227,9 @@
         };
 
         try {
+            const currentUrl = window.location.href;
+            const urlIsLeveros = currentUrl.includes('leveros.com.br');
+
             // Itens do carrinho (Dufrio ou Leveros)
             // Na Leveros as linhas ficam dentro de `.box-carrinho-produtos` ou `.boxCheckoutCarrinhoProdutoItem`
             const rows = Array.from(document.querySelectorAll('tr.item-info, table tbody tr, .cart-item, [class*="product-item"], .box-carrinho-produtos'));
@@ -459,7 +462,7 @@
             }
 
             // Sobrescrita específica para Leveros baseada no DOM real
-            if (isLeveros) {
+            if (urlIsLeveros) {
                 const resumoVals = document.querySelectorAll('.resumo-pedido-valores .box-v1');
                 resumoVals.forEach(row => {
                     const text = (row.textContent || row.innerText || '').toLowerCase();
@@ -469,19 +472,17 @@
                     }
                 });
 
-                const totalLeveros = document.querySelector('.box-total-resumo-geral .box-total-v1, .box-total-v1');
+                const totalLeveros = document.querySelector('.box-total-resumo-geral .box-total-v1, .box-total-v1, span.box-total-v1');
                 if (totalLeveros) {
                     const match = (totalLeveros.textContent || totalLeveros.innerText || '').match(/r\$\s*[\d.,]+/i);
                     if (match) data.totalWithShipping = match[0].trim();
                 }
 
-                // Fallback infalível: Soma Subtotal + Frete caso o HTML da Leveros pisque ou mude
-                if (!data.totalWithShipping && data.subtotal) {
-                    const subNum = parseCurrencyValue(data.subtotal);
-                    const shipNum = data.shippingCost ? parseCurrencyValue(data.shippingCost) : 0;
-                    if (subNum > 0) {
-                        data.totalWithShipping = 'R$ ' + formatCurrency(subNum + shipNum);
-                    }
+                // Fallback infalível absoluto: Soma Subtotal + Frete para Leveros
+                const subNum = parseCurrencyValue(data.subtotal);
+                const shipNum = data.shippingCost ? parseCurrencyValue(data.shippingCost) : 0;
+                if (subNum > 0) {
+                    data.totalWithShipping = 'R$ ' + formatCurrency(subNum + shipNum);
                 }
 
                 // Na Leveros não vamos mostrar o PIX no orçamento do carrinho
@@ -608,7 +609,15 @@
             if (data.installmentPrice) {
                 const installmentInfo = extractInstallmentInfo(data.installmentPrice);
                 if (installmentInfo) {
-                    totalText += ` ${installmentInfo}`;
+                    // Na Leveros o usuário quer o parcelamento colado e sem o 'em'
+                    totalText += ` ${installmentInfo.replace(/^em\s+/i, '')}`;
+                }
+            } else if (data.totalWithShipping) {
+                // Se por acaso faltar o parcelamento, a gente amarra 10x
+                const totalNum = parseCurrencyValue(data.totalWithShipping);
+                if (totalNum > 0) {
+                    const inst = totalNum / 10;
+                    totalText += ` 10x de R$ ${formatCurrency(inst)}`;
                 }
             }
             text += `${totalText}\n\n`;
