@@ -83,7 +83,6 @@
         const products = [];
         const seenTitles = new Set();
 
-        // Tenta achar com .pdc_product-item, fallback para [class*="product-item"] ou colunas bootstrap
         const cards = document.querySelectorAll('.pdc_product-item, .card-product, [class*="product-item"], [class*="product_item"]');
 
         if (cards.length === 0) {
@@ -103,61 +102,39 @@
                 let imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
 
                 if (imgEl) {
-                    // Na Central Ar, imagens podem ter lazy loading
                     imgSrc = imgEl.getAttribute('data-src') || imgEl.getAttribute('data-lazy-src') || imgEl.src || imgSrc;
-
-                    // Se ainda for um data:image genérico de preenchimento, ignora
                     if (imgSrc.startsWith('data:image')) {
                         imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
                     }
                 }
 
-                // Se ainda for um data:image genérico de preenchimento, ignora
                 if (!imgSrc || imgSrc.startsWith('data:image')) {
                     imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
                 }
 
-                // Valores
+                // Valores via Regex global no texto do card (Mais seguro contra mudanças de classes)
                 let spotLine = "";
                 let installLine = "";
 
-                // À vista - Na Central Ar fica nas classes .prices
-                const pricesSection = card.querySelector('.prices');
-                if (pricesSection) {
-                    // Preço à vista está no span.price-info
-                    const spotEl = pricesSection.querySelector('.price-info');
-                    if (spotEl) {
-                        let rawSpot = spotEl.innerText.replace(/\s+/g, ' ').trim();
-                        // Remove "no pix (X% de desconto)"
-                        rawSpot = rawSpot.replace(/no pix.*/gi, '').trim();
-                        if (rawSpot) spotLine = rawSpot + " à vista";
-                    }
+                const cardText = card.innerText.replace(/\s+/g, ' ').trim();
 
-                    // Se não encontrar no price-info, tenta fallback no bestPrice
-                    if (!spotLine) {
-                        const bestPriceEl = pricesSection.querySelector('.bestPrice, [class*="best-price"]');
-                        if (bestPriceEl) {
-                            spotLine = bestPriceEl.innerText.replace(/\s+/g, ' ').trim() + " à vista";
-                        }
-                    }
+                // Busca preço à vista (ex: R$ 1.619,10)
+                // Usando lookahead para não pegar o valor da parcela se possível, ou pega o primeiro R$
+                const priceMatches = [...cardText.matchAll(/r\$\s*[\d.,]+/gi)];
 
-                    // Preço parcelado está na div.price_row
-                    const installEl = pricesSection.querySelector('.price_row');
-                    if (installEl) {
-                        let rawInstall = installEl.innerText.replace(/\s+/g, ' ').trim();
-                        // Geralmente vem: "ou R$ 1.799,00 em 10x de R$ 179,90 sem juros"
-                        // Vamos limpar o "sem juros"
-                        rawInstall = rawInstall.replace(/sem juros/gi, '').trim();
-                        if (rawInstall) installLine = rawInstall;
-                    }
+                if (priceMatches.length > 0) {
+                    // Preço à vista costuma ser o primeiro valor grande que aparece
+                    spotLine = priceMatches[0][0].trim() + " à vista";
+                }
 
-                    // Fallback para parcelado no texto inteiro se a div faltar
-                    if (!installLine) {
-                        const installmentMatch = pricesSection.innerText.match(/ou\s+r\$\s*[\d.,]+\s+em\s+\d+\s*x\s+de\s+r\$\s*[\d.,]+/i);
-                        if (installmentMatch) {
-                            installLine = installmentMatch[0].trim();
-                        }
-                    }
+                // Busca preço parcelado (ex: ou R$ 1.799,00 em 10x de R$ 179,90 sem juros)
+                const installmentMatch = cardText.match(/(?:ou\s+)?r\$\s*[\d.,]+\s*(?:em\s+)?\d+\s*x\s*de\s*r\$\s*[\d.,]+/i);
+                if (installmentMatch) {
+                    installLine = installmentMatch[0].replace(/sem juros/gi, '').trim();
+                } else {
+                    // Fallback se não tiver texto "ou" no parcelamento, mas tiver "10x"
+                    const fallbackInst = cardText.match(/\d+\s*x\s*de\s*r\$\s*[\d.,]+/i);
+                    if (fallbackInst) installLine = fallbackInst[0].trim();
                 }
 
                 if (!spotLine || (!installLine && !spotLine)) {
@@ -177,6 +154,7 @@
             } catch (e) { console.error('Central Ar Erro no card:', e); }
         });
 
+        return products;
         return products;
     }
 
