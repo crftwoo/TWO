@@ -98,25 +98,19 @@
                 const titleStr = titleEl.innerText.trim();
 
                 // Imagem
-                // O HTML da Central Ar usa uma url específica castaticstorage no src
-                const imgElements = card.querySelectorAll('img');
                 let imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
 
-                for (let el of imgElements) {
-                    let potentialSrc = el.getAttribute('data-src') || el.getAttribute('data-lazy-src') || el.src;
+                // O HTML da Central Ar usa <a class="thumb"><img src="https://castaticstorage..."></a>
+                const imgEl = card.querySelector('a.thumb img, .thumb img, img[class*="thumb"]');
 
-                    // Prioriza a imagem oficial que fica no blob da Central Ar
-                    if (potentialSrc && potentialSrc.includes('castaticstorage')) {
-                        imgSrc = potentialSrc;
-                        break;
-                    }
-                }
+                if (imgEl) {
+                    // Tenta achar a URL real em ordem de prioridade
+                    const attrs = ['src', 'data-src', 'data-lazy-src'];
+                    for (let attr of attrs) {
+                        let potentialSrc = attr === 'src' ? imgEl.src : imgEl.getAttribute(attr);
 
-                // Fallback de segurança: se mudar a hospedagem oficial, pega a primeira foto que não seja ícone svg ou ui
-                if (imgSrc === 'https://via.placeholder.com/150?text=Sem+Foto') {
-                    for (let el of imgElements) {
-                        let potentialSrc = el.getAttribute('data-src') || el.getAttribute('data-lazy-src') || el.src;
-                        if (potentialSrc && !potentialSrc.startsWith('data:image') && !potentialSrc.includes('.svg') && !potentialSrc.includes('/_ui/')) {
+                        // Garante que é uma string válida, não é base64 vazia e não é um ícone SVG
+                        if (potentialSrc && typeof potentialSrc === 'string' && !potentialSrc.startsWith('data:image') && !potentialSrc.includes('.svg')) {
                             imgSrc = potentialSrc;
                             break;
                         }
