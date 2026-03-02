@@ -21,8 +21,11 @@
         titleSpan.id = 'dufrio-ext-main-title';
 
         // Define o título inicial com base no site atual
-        const isLeveros = window.location.host.includes('leveros.com.br');
-        titleSpan.innerText = isLeveros ? 'Ar condicionado - Leveros' : 'Ar condicionado - Dufrio';
+        const host = window.location.host;
+        let pTitle = 'Ar condicionado - Dufrio';
+        if (host.includes('leveros.com.br')) pTitle = 'Ar condicionado - Leveros';
+        else if (host.includes('centralar.com.br')) pTitle = 'Ar condicionado - Central Ar';
+        titleSpan.innerText = pTitle;
 
         titleSpan.style.whiteSpace = 'pre-line';
 
@@ -69,9 +72,80 @@
     }
 
     function extractData() {
-        const isLeveros = window.location.host.includes('leveros.com.br');
-        if (isLeveros) return extractDataLeveros();
+        const host = window.location.host;
+        if (host.includes('leveros.com.br')) return extractDataLeveros();
+        if (host.includes('centralar.com.br')) return extractDataCentralAr();
         return extractDataDufrio();
+    }
+
+    // --- CENTRAL AR SCRAPER ---
+    function extractDataCentralAr() {
+        const products = [];
+        const seenTitles = new Set();
+
+        const cards = document.querySelectorAll('.pdc_product-item');
+
+        if (cards.length === 0) {
+            console.log("Central Ar Extrator: Seletores não encontraram produtos.");
+            return products;
+        }
+
+        cards.forEach(card => {
+            try {
+                // Título
+                const titleEl = card.querySelector('a.name');
+                if (!titleEl) return;
+                const titleStr = titleEl.innerText.trim();
+
+                // Imagem
+                const imgEl = card.querySelector('a.thumb img');
+                if (!imgEl) return;
+                let imgSrc = imgEl.src || imgEl.getAttribute('data-src') || '';
+                if (!imgSrc || imgSrc.includes('data:image')) return;
+
+                // Valores
+                let spotLine = "";
+                let installLine = "";
+
+                // À vista - Na Central Ar fica nas classes .prices
+                const pricesSection = card.querySelector('.prices');
+                if (pricesSection) {
+                    const bestPriceEl = pricesSection.querySelector('.bestPrice, [class*="best-price"]');
+                    if (bestPriceEl) {
+                        spotLine = bestPriceEl.innerText.replace(/\s+/g, ' ').trim() + " à vista";
+                    }
+
+                    // Se não tiver price class específica, tenta catar o PIX no texto bruto todo
+                    if (!spotLine) {
+                        const pricesText = pricesSection.innerText.toLowerCase();
+                        if (pricesText.includes('r$')) {
+                            const pixMatch = pricesSection.innerText.match(/r\$\s*[\d.,]+/i);
+                            if (pixMatch) spotLine = pixMatch[0].trim() + " à vista";
+                        }
+                    }
+
+                    // Parcelado - Fica geralmente dentro do .prices logo depois
+                    const installmentMatch = pricesSection.innerText.match(/ou\s+r\$\s*[\d.,]+\s+em\s+\d+\s*x\s+de\s+r\$\s*[\d.,]+/i);
+                    if (installmentMatch) {
+                        installLine = installmentMatch[0].trim();
+                    }
+                }
+
+                if (!spotLine || (!installLine && !spotLine)) return;
+
+                if (!seenTitles.has(titleStr)) {
+                    seenTitles.add(titleStr);
+                    products.push({
+                        title: titleStr,
+                        image: imgSrc,
+                        spot: spotLine,
+                        install: installLine
+                    });
+                }
+            } catch (e) { console.error('Central Ar Erro:', e); }
+        });
+
+        return products;
     }
 
     // --- LEVEROS SCRAPER ---
@@ -310,8 +384,10 @@
     }
 
     function generateSmartTitle(productsList) {
-        const isLeveros = window.location.host.includes('leveros.com.br');
-        const defaultTitle = isLeveros ? 'Ar condicionado - Leveros' : 'Ar condicionado - Dufrio';
+        const host = window.location.host;
+        let defaultTitle = 'Ar condicionado - Dufrio';
+        if (host.includes('leveros.com.br')) defaultTitle = 'Ar condicionado - Leveros';
+        else if (host.includes('centralar.com.br')) defaultTitle = 'Ar condicionado - Central Ar';
 
         if (!productsList || productsList.length === 0) return defaultTitle;
 

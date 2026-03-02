@@ -12,6 +12,7 @@
     "host_permissions": [
         "https://www.dufrio.com.br/*",
         "https://www.leveros.com.br/*",
+        "https://parceiro.centralar.com.br/*",
         "https://opensheet.elk.sh/*"
     ],
     "externally_connectable": {
@@ -32,7 +33,8 @@
         {
             "matches": [
                 "https://www.dufrio.com.br/ar-condicionado*",
-                "https://www.vendas.leveros.com.br/ar-condicionado*"
+                "https://www.vendas.leveros.com.br/ar-condicionado*",
+                "https://parceiro.centralar.com.br/*"
             ],
             "css": [
                 "content.css"
