@@ -98,18 +98,16 @@
                 const titleStr = titleEl.innerText.trim();
 
                 // Imagem
-                const imgEl = card.querySelector('a.thumb img, img[class*="thumb"], img');
+                // O HTML da Central Ar usa uma url específica castaticstorage no src
+                const imgElements = card.querySelectorAll('img');
                 let imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
 
-                if (imgEl) {
-                    imgSrc = imgEl.getAttribute('data-src') || imgEl.getAttribute('data-lazy-src') || imgEl.src || imgSrc;
-                    if (imgSrc.startsWith('data:image')) {
-                        imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
+                for (let el of imgElements) {
+                    let potentialSrc = el.getAttribute('data-src') || el.getAttribute('data-lazy-src') || el.src;
+                    if (potentialSrc && !potentialSrc.startsWith('data:image')) {
+                        imgSrc = potentialSrc;
+                        break;
                     }
-                }
-
-                if (!imgSrc || imgSrc.startsWith('data:image')) {
-                    imgSrc = 'https://via.placeholder.com/150?text=Sem+Foto';
                 }
 
                 // Valores via Regex global no texto do card (Mais seguro contra mudanças de classes)
