@@ -11,16 +11,21 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;800;900&display=swap');
 
+    * {
+      box-sizing: border-box;
+    }
+
     :root {
       --green: #9BE20D;
-      --border: #1A1F24;
-      --bg-color: #000000;
-      --card-bg: #0B0F14;
+      --border: rgba(255, 255, 255, 0.05);
+      --bg-color: #050505;
+      --card-bg: #0A0A0A;
+      --text-secondary: #71717a;
     }
 
     body {
       margin: 0;
-      padding: 20px;
+      padding: 40px 20px;
       font-family: 'Montserrat', sans-serif;
       background: var(--bg-color);
       color: #fff;
@@ -29,17 +34,49 @@
     .container {
       max-width: 1000px;
       margin: 0 auto;
-      padding-bottom: 60px;
+      padding-bottom: 80px;
+      animation: fadeIn 0.6s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+      font-style: italic;
+      color: var(--green);
+    }
+
+    .sub-head {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
     }
 
     h2 {
       font-weight: 900;
-      margin: 40px 0 20px;
+      margin: 48px 0 24px;
       text-transform: uppercase;
       letter-spacing: -0.5px;
-      font-size: 28px;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 10px;
+      font-size: 18px;
     }
 
     .section {
@@ -49,20 +86,24 @@
     }
 
     button {
-      background: transparent;
+      background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      /* Mais quadrado estilo Nike */
+      border-radius: 12px;
       cursor: pointer;
-      padding: 16px 24px;
+      padding: 16px 32px;
       color: #fff;
       font-weight: 800;
       text-transform: uppercase;
-      transition: all 0.2s ease;
+      letter-spacing: 1px;
+      font-size: 12px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      font-family: 'Montserrat', sans-serif;
     }
 
     button:hover {
-      border-color: #444;
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
     }
 
     button.selecionado {
@@ -78,20 +119,19 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
+      gap: 16px;
+      padding: 24px 16px;
     }
 
     .tipo-btn.selecionado {
-      background: rgba(155, 226, 13, 0.05);
-      color: var(--green);
+      background: var(--green);
+      color: #000;
       border-color: var(--green);
     }
 
     .tipo-btn img {
       width: 140px;
-      /* Lighten permite que o claro sobressaia sem estourar o fundo branco como screen as vezes faz */
       mix-blend-mode: lighten;
-      /* O Contraste alto e Brilho baixo obrigam o fundo "quase preto" da imagem a virar Preto Absoluto (desaparecendo no lighten) */
       filter: contrast(1.6) brightness(0.7) drop-shadow(0 0 4px rgba(75, 216, 255, 0.2));
       transition: transform 0.3s ease, filter 0.3s ease;
     }
@@ -103,35 +143,42 @@
 
     .tipo-btn.selecionado img {
       filter: contrast(1.8) brightness(1.1);
+      mix-blend-mode: normal;
+      /* remove the lighten on green bg for better view or keep it if png handles it */
     }
 
     #resultados {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
     }
 
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      padding: 24px;
-      border-radius: 8px;
+      padding: 32px;
+      border-radius: 20px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: transform 0.2s ease;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     .card:hover {
       transform: translateY(-4px);
-      border-color: #333;
+      border-color: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8);
     }
 
     .card strong {
       font-weight: 800;
-      font-size: 18px;
-      margin-bottom: 16px;
+      font-size: 16px;
+      margin-bottom: 24px;
       display: block;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
     }
 
     .card a {
@@ -141,24 +188,36 @@
 
     .card button {
       width: 100%;
-      background: #fff;
-      color: #000;
-      border: none;
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      border: 1px solid var(--border);
     }
 
     .card button:hover {
       background: var(--green);
       color: #000;
+      border-color: var(--green);
       transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(155, 226, 13, 0.25);
     }
 
     @media (max-width: 768px) {
       body {
-        padding: 16px;
+        padding: 24px 16px;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .sub-head {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
       }
 
       .section {
         flex-direction: column;
+        gap: 12px;
       }
 
       .tipo-btn,
@@ -166,12 +225,22 @@
         width: 100%;
       }
 
+      .tipo-btn {
+        padding: 16px;
+        flex-direction: row;
+        justify-content: space-between;
+      }
+
       .tipo-btn img {
-        width: 120px;
+        width: 100px;
       }
 
       #resultados {
         grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 24px;
       }
     }
   </style>
@@ -181,7 +250,7 @@
 
   <div class="container">
     <h1>Busca Ar-Condicionado</h1>
-    <div class="sub">Buscador de preços de ar condicionado.</div>
+    <div class="sub-head">Buscador de preços de ar condicionado.</div>
 
     <h2>Selecione o Tipo</h2>
     <div id="tipos" class="section"></div>
