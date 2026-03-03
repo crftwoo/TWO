@@ -4,20 +4,34 @@
 
 window.addEventListener("message", (event) => {
     // We only accept messages from ourselves
-    if (event.source !== window || !event.data || event.data.type !== "TWO_EXTENSION_REQUEST") {
+    if (event.source !== window || !event.data) {
         return;
     }
 
-    // Forward the request to the extension's background script
-    chrome.runtime.sendMessage({
-        action: "scrape",
-        url: event.data.url
-    }, (response) => {
-        // Send the response back to the website
-        window.postMessage({
-            type: "TWO_EXTENSION_RESPONSE",
-            id: event.data.id,
-            data: response
-        }, "*");
-    });
+    if (event.data.type === "TWO_GET_COMPARADOR_DATA") {
+        // Obter os dados diretamente do banco de dados da extensão
+        chrome.storage.local.get(['comparador_data'], (result) => {
+            window.postMessage({
+                type: "TWO_RETURN_COMPARADOR_DATA",
+                id: event.data.id,
+                data: result.comparador_data || {}
+            }, "*");
+        });
+        return;
+    }
+
+    if (event.data.type === "TWO_EXTENSION_REQUEST") {
+        // Forward the request to the extension's background script
+        chrome.runtime.sendMessage({
+            action: "scrape",
+            url: event.data.url
+        }, (response) => {
+            // Send the response back to the website
+            window.postMessage({
+                type: "TWO_EXTENSION_RESPONSE",
+                id: event.data.id,
+                data: response
+            }, "*");
+        });
+    }
 });

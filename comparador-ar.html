@@ -201,6 +201,47 @@
       box-shadow: 0 8px 15px rgba(155, 226, 13, 0.25);
     }
 
+    /* Styles for the multiple compare section */
+    .compare-section {
+      margin-top: 60px;
+      padding-top: 40px;
+      border-top: 2px dashed rgba(255, 255, 255, 0.1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .compare-actions {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .badge-store {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .badge-dufrio { background: #0056b3; color: white; }
+    .badge-leveros { background: #009038; color: white; }
+    .badge-centralar { background: #005ca8; color: white; }
+
+    .compare-copy-btn {
+      width: auto !important;
+      margin: 32px auto 0 !important;
+      background: var(--green) !important;
+      color: #000 !important;
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 24px 16px;
@@ -263,6 +304,18 @@
 
     <h2>Resultados</h2>
     <div id="resultados"></div>
+
+    <div class="compare-section" id="compare-section">
+      <h2>Comparação de Múltiplas Lojas</h2>
+      <div class="sub-head">Integração com a extensão Chrome para mostrar o campeão de vendas</div>
+      <div class="compare-actions">
+        <button onclick="requestExtensionData()">Puxar Dados da Extensão ↓</button>
+        <button id="btn-organizar" onclick="organizarTudo()" style="display:none; border-color: var(--green); color: var(--green);">Organizar pelo Menor Preço 🏆</button>
+      </div>
+      
+      <!-- Onde a lista agrupada e ordenada será desenhada para copiar -->
+      <div id="resultados-comparador" style="width: 100%; max-width: 800px; text-align: left;"></div>
+    </div>
   </div>
 
   <script>
@@ -358,6 +411,213 @@
         div.appendChild(card);
       });
     }
+
+    // ====== LÓGICA DE INTEGRAÇÃO COM A EXTENSÃO ======
+    
+    let dadosExtensaoBrutos = {};
+    let activeRequest = null;
+
+    // Pede para o bridge.js puxar os dados do chrome.storage.local
+    function requestExtensionData() {
+        activeRequest = Date.now();
+        window.postMessage({
+            type: "TWO_GET_COMPARADOR_DATA",
+            id: activeRequest
+        }, "*");
+
+        // Feedback visual
+        event.target.innerText = "Puxando...";
+        setTimeout(() => { if (event.target.innerText === "Puxando...") event.target.innerText = "Puxar Dados da Extensão ↓"; }, 2000);
+    }
+
+    // Escuta a resposta do bridge.js
+    window.addEventListener("message", (event) => {
+        if (event.source !== window || !event.data || event.data.type !== "TWO_RETURN_COMPARADOR_DATA") return;
+        
+        const receivedData = event.data.data;
+        if (Object.keys(receivedData).length === 0) {
+            alert("Nenhum dado encontrado na extensão. Você já clicou em 'Jogar p/ Comparador' em alguma loja?");
+            const btn = document.querySelector('button[onclick="requestExtensionData()"]');
+            if(btn) btn.innerText = "Puxar Dados da Extensão ↓";
+            return;
+        }
+
+        dadosExtensaoBrutos = receivedData;
+        
+        const btn = document.querySelector('button[onclick="requestExtensionData()"]');
+        if(btn) {
+           btn.innerText = "Dados Sincronizados! ✔️";
+           setTimeout(() => btn.innerText = "Puxar Dados da Extensão ↓", 3000);
+        }
+
+        document.getElementById('btn-organizar').style.display = 'block';
+        
+        // Automaticamente já organiza a primeira vez para facilitar para o usuário
+        organizarTudo();
+        
+        // Desce a tela até os resultados
+        setTimeout(() => { document.getElementById('btn-organizar').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+    });
+
+    // Helper functions idênticas às da extensão para manter compatibilidade
+    function extractProductInfo(titleStr) {
+        const titleLower = titleStr.toLowerCase();
+        let btuVal = null;
+        const btuMatch = titleLower.match(/(\d{1,2}\.?\d{3})\s*btus?/);
+        if (btuMatch) btuVal = parseInt(btuMatch[1].replace('.', ''), 10);
+
+        const isQF = titleLower.includes('quente/frio') || titleLower.includes('quente e frio') || titleLower.includes('quente/ frio') || titleLower.includes('quente / frio') || titleLower.includes('quente frio') || titleLower.includes('q/f');
+        const isSF = titleLower.includes('frio') && !isQF;
+
+        let type = 'Ar Condicionado';
+        if (titleLower.includes('teto')) type = 'Piso Teto';
+        else if (titleLower.includes('cassete')) type = 'Cassete';
+        else if (titleLower.includes('janela')) type = 'de Janela';
+        else if (titleLower.includes('portátil') || titleLower.includes('portatil')) type = 'Portátil';
+        else if (titleLower.includes('multi')) type = 'Multi Split';
+        else if (titleLower.includes('split') || titleLower.includes('hiwall') || titleLower.includes('hi-wall') || titleLower.includes('hi wall')) type = 'Hiwall';
+
+        return { btuVal, isQF, isSF, type };
+    }
+
+    function generateSmartTitle(productsList) {
+        if (!productsList || productsList.length === 0) return 'Comparativo de Ar Condicionado';
+        const typesStats = {};
+        productsList.forEach(p => {
+            const info = extractProductInfo(p.title);
+            if (!typesStats[info.type]) typesStats[info.type] = { minBtu: Infinity, maxBtu: -Infinity, hasQF: false, hasSF: false };
+            if (info.btuVal) {
+                if (info.btuVal < typesStats[info.type].minBtu) typesStats[info.type].minBtu = info.btuVal;
+                if (info.btuVal > typesStats[info.type].maxBtu) typesStats[info.type].maxBtu = info.btuVal;
+            }
+            if (info.isQF) typesStats[info.type].hasQF = true;
+            if (info.isSF) typesStats[info.type].hasSF = true;
+        });
+
+        const orderedTypes = ['Hiwall', 'Piso Teto', 'Cassete', 'de Janela', 'Portátil', 'Multi Split', 'Ar Condicionado'];
+        const formatInt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+        let titleLines = [];
+
+        orderedTypes.forEach(t => {
+            if (typesStats[t]) {
+                const stats = typesStats[t];
+                let btuString = "";
+                if (stats.minBtu !== Infinity && stats.maxBtu !== -Infinity) {
+                    if (stats.minBtu === stats.maxBtu) btuString = `${formatInt(stats.minBtu)} Btus`;
+                    else btuString = `${formatInt(stats.minBtu)} a ${formatInt(stats.maxBtu)} Btus`;
+                }
+                let cicloString = "";
+                let emoji = "";
+                if (stats.hasQF && stats.hasSF) { cicloString = ""; emoji = ""; }
+                else if (stats.hasQF) { cicloString = "Quente/Frio"; emoji = "🔥❄️ "; }
+                else if (stats.hasSF) { cicloString = "Só Frio"; emoji = "❄️ "; }
+
+                const parts = [t];
+                if (btuString) parts.push(btuString);
+                if (cicloString) parts.push(cicloString);
+                titleLines.push(`${emoji}${parts.join(' · ')}`.trim());
+            }
+        });
+        return titleLines.join('\n');
+    }
+
+    function formatProductText(title, spot, install) {
+        let emojiCycle = "❄️";
+        const titleLower = title.toLowerCase();
+        if (titleLower.includes('quente/frio') || titleLower.includes('quente e frio') || titleLower.includes('quente/ frio') || titleLower.includes('quente / frio') || titleLower.includes('quente frio') || titleLower.includes('q/f')) {
+            emojiCycle = "🔥❄️";
+        }
+        return `${emojiCycle} ${title}\n💰 ${spot}\n💳 ${install}`;
+    }
+
+    function parseSpotPrice(priceStr) {
+        if (!priceStr) return Infinity;
+        const match = priceStr.match(/R\$\s*([\d\.,]+)/);
+        if (match) {
+            let numStr = match[1].replace(/\./g, '').replace(',', '.');
+            return parseFloat(numStr) || Infinity;
+        }
+        return Infinity;
+    }
+
+    // Variável global para guardar o array unificado pronto para cópia
+    let unifiedAndSortedList = [];
+
+    function organizarTudo() {
+        const divInfo = document.getElementById("resultados-comparador");
+        divInfo.innerHTML = "";
+        unifiedAndSortedList = [];
+
+        // 1. Achatar todos os produtos de todas as lojas num único array injetando a proveniência
+        for (const [storeName, products] of Object.entries(dadosExtensaoBrutos)) {
+            products.forEach(p => {
+                unifiedAndSortedList.push({
+                    store: storeName,
+                    title: p.title,
+                    spot: p.spot,
+                    install: p.install,
+                    image: p.image,
+                    _parsedPrice: parseSpotPrice(p.spot)
+                });
+            });
+        }
+
+        // 2. Ordena usando a representação numérica do preço à vista
+        unifiedAndSortedList.sort((a, b) => a._parsedPrice - b._parsedPrice);
+
+        // 3. Monta a Visualização
+        const titleStr = generateSmartTitle(unifiedAndSortedList);
+        
+        let htmlOut = `<div style="background: var(--card-bg); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-top:24px;">`;
+        htmlOut += `<h3 style="color: var(--green); margin-top: 0; white-space: pre-line;">${titleStr}</h3>`;
+        htmlOut += `<div style="border-bottom: 1px solid var(--border); margin-bottom: 24px; padding-bottom: 24px;"></div>`;
+
+        unifiedAndSortedList.forEach(p => {
+            let badgeClass = "badge-dufrio";
+            if(p.store.toLowerCase().includes('leveros')) badgeClass = "badge-leveros";
+            if(p.store.toLowerCase().includes('central ar')) badgeClass = "badge-centralar";
+
+            let cycleEmoji = "❄️";
+            const tl = p.title.toLowerCase();
+            if (tl.includes('quente/frio') || tl.includes('q/f') || tl.includes('quente e frio')) cycleEmoji = "🔥❄️";
+
+            htmlOut += `
+              <div style="margin-bottom: 24px;">
+                 <span class="badge-store ${badgeClass}">${p.store}</span>
+                 <div style="font-weight: 800; font-size: 14px; margin-bottom: 8px;">${cycleEmoji} ${p.title}</div>
+                 <div style="color: var(--green); font-weight: 900; margin-bottom: 4px;">💰 ${p.spot}</div>
+                 <div style="font-size: 13px; color: var(--text-secondary);">💳 ${p.install}</div>
+              </div>
+            `;
+        });
+
+        htmlOut += `<button class="compare-copy-btn" onclick="copiarListaCampeao(this)">Copiar Lista (Pronta pro Whatsapp) 📋</button>`;
+        htmlOut += `</div>`;
+        
+        divInfo.innerHTML = htmlOut;
+    }
+
+    function copiarListaCampeao(btnElement) {
+        if(unifiedAndSortedList.length === 0) return;
+
+        const titleStr = generateSmartTitle(unifiedAndSortedList);
+        const titleText = titleStr.split('\n').map(l => `*${l}*`).join('\n');
+
+        const listText = unifiedAndSortedList.map(p => {
+            // Embutimos a identificação da loja fisicamente na cópia para o Zap também
+            const formatBase = formatProductText(p.title, p.spot, p.install);
+            return `🏬 *Vendido por: ${p.store.toUpperCase()}*\n${formatBase}`;
+        }).join('\n\n_____\n\n');
+
+        const textToCopy = `${titleText}\n\n${listText}`;
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            const old = btnElement.innerText;
+            btnElement.innerText = "Lista Final Copiada! ✔️";
+            setTimeout(() => btnElement.innerText = old, 3000);
+        });
+    }
+
   </script>
 
 </body>
