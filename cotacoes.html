@@ -256,16 +256,18 @@
 
                 const itensFinais = [];
                 mapaItens.forEach((item, chave) => {
-                    let total = 0, qtdTexto = "";
+                    let total = 0, qtdTexto = "", unidade = "";
                     if (item.tipo === 'cobre') {
                         const peso = item.qtdNumerica * COBRE_PESO[item.bitola];
                         total = peso * item.valorUnit;
                         qtdTexto = `${peso.toFixed(2)} kg (${item.qtdNumerica}m)`;
+                        unidade = "kg";
                     } else {
                         total = item.qtdNumerica * item.valorUnit;
-                        qtdTexto = `${item.qtdNumerica} ${item.tipo === 'cabo' || item.tipo === 'iso' ? 'm' : 'pç'}`;
+                        unidade = (item.tipo === 'cabo' || item.tipo === 'iso') ? 'm' : 'pç';
+                        qtdTexto = `${item.qtdNumerica} ${unidade}`;
                     }
-                    itensFinais.push({ id: chave, nome: item.nome, qtd: qtdTexto, valorUnit: item.valorUnit, total });
+                    itensFinais.push({ id: chave, nome: item.nome, qtd: qtdTexto, valorUnit: item.valorUnit, unidade, total });
                 });
                 setItens(itensFinais); setErros(novosErros);
             };
@@ -337,8 +339,9 @@
                                                                 </span>
                                                             ))}
                                                         </td>
-                                                        <td className="p-5 font-mono text-zinc-400 text-center">
-                                                            R$ {item.valorUnit.toFixed(2)}
+                                                        <td className="p-5 font-mono text-center">
+                                                            <span className="text-zinc-400">R$ {item.valorUnit.toFixed(2)}</span>
+                                                            <span className="block text-[10px] text-zinc-600">/ {item.unidade}</span>
                                                         </td>
                                                         <td className="p-5 pr-6 text-right font-black text-white text-sm">
                                                             R$ {item.total.toFixed(2)}
