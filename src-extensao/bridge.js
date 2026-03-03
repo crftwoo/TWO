@@ -35,3 +35,14 @@ window.addEventListener("message", (event) => {
         });
     }
 });
+
+// Listener em tempo real: Se o banco de dados mudar (usuário clicou em Jogar p/ Comparador em alguma aba da loja)
+// a ponte envia a atualização imediatamente para o site do comparador que já está aberto.
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (namespace === 'local' && changes.comparador_data) {
+        window.postMessage({
+            type: "TWO_RETURN_COMPARADOR_DATA",
+            data: changes.comparador_data.newValue || {}
+        }, "*");
+    }
+});

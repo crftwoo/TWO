@@ -231,9 +231,20 @@
       margin-bottom: 12px;
     }
 
-    .badge-dufrio { background: #0056b3; color: white; }
-    .badge-leveros { background: #009038; color: white; }
-    .badge-centralar { background: #005ca8; color: white; }
+    .badge-dufrio {
+      background: #0056b3;
+      color: white;
+    }
+
+    .badge-leveros {
+      background: #009038;
+      color: white;
+    }
+
+    .badge-centralar {
+      background: #005ca8;
+      color: white;
+    }
 
     .compare-copy-btn {
       width: auto !important;
@@ -306,15 +317,18 @@
     <div id="resultados"></div>
 
     <div class="compare-section" id="compare-section">
-      <h2>Comparação de Múltiplas Lojas</h2>
-      <div class="sub-head">Integração com a extensão Chrome para mostrar o campeão de vendas</div>
+      <h2>Comparador Ao Vivo (Da Extensão)</h2>
+      <div class="sub-head">A caixa atualiza sozinha quando você joga os itens da extensão pra cá!</div>
+
+      <textarea id="caixa-comparador" readonly placeholder="Nenhum produto enviado pela extensão ainda..."
+        style="width: 100%; height: 350px; background: #0A0A0A; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; font-family: 'Montserrat', sans-serif; font-size: 14px; margin-bottom: 24px; resize: vertical; line-height: 1.5; outline: none;"></textarea>
+
       <div class="compare-actions">
-        <button onclick="requestExtensionData()">Puxar Dados da Extensão ↓</button>
-        <button id="btn-organizar" onclick="organizarTudo()" style="display:none; border-color: var(--green); color: var(--green);">Organizar pelo Menor Preço 🏆</button>
+        <button id="btn-organizar" onclick="organizarTudo()"
+          style="border-color: var(--green); color: var(--green);">Organizar Todos pelo Menor Preço 🏆</button>
+        <button onclick="copiarCaixa(this)"
+          style="background: var(--green); color: #000; border-color: var(--green);">Copiar Texto da Caixa 📋</button>
       </div>
-      
-      <!-- Onde a lista agrupada e ordenada será desenhada para copiar -->
-      <div id="resultados-comparador" style="width: 100%; max-width: 800px; text-align: left;"></div>
     </div>
   </div>
 
@@ -413,209 +427,187 @@
     }
 
     // ====== LÓGICA DE INTEGRAÇÃO COM A EXTENSÃO ======
-    
+
     let dadosExtensaoBrutos = {};
     let activeRequest = null;
+    let isSorted = false; // Controla se estamos vendo por loja ou todos unificados e sorteados
 
-    // Pede para o bridge.js puxar os dados do chrome.storage.local
-    function requestExtensionData() {
-        activeRequest = Date.now();
-        window.postMessage({
-            type: "TWO_GET_COMPARADOR_DATA",
-            id: activeRequest
-        }, "*");
-
-        // Feedback visual
-        event.target.innerText = "Puxando...";
-        setTimeout(() => { if (event.target.innerText === "Puxando...") event.target.innerText = "Puxar Dados da Extensão ↓"; }, 2000);
-    }
-
-    // Escuta a resposta do bridge.js
+    // Escuta a resposta e atualizações automáticas do bridge.js
     window.addEventListener("message", (event) => {
-        if (event.source !== window || !event.data || event.data.type !== "TWO_RETURN_COMPARADOR_DATA") return;
-        
-        const receivedData = event.data.data;
-        if (Object.keys(receivedData).length === 0) {
-            alert("Nenhum dado encontrado na extensão. Você já clicou em 'Jogar p/ Comparador' em alguma loja?");
-            const btn = document.querySelector('button[onclick="requestExtensionData()"]');
-            if(btn) btn.innerText = "Puxar Dados da Extensão ↓";
-            return;
-        }
+      if (event.source !== window || !event.data || event.data.type !== "TWO_RETURN_COMPARADOR_DATA") return;
 
-        dadosExtensaoBrutos = receivedData;
-        
-        const btn = document.querySelector('button[onclick="requestExtensionData()"]');
-        if(btn) {
-           btn.innerText = "Dados Sincronizados! ✔️";
-           setTimeout(() => btn.innerText = "Puxar Dados da Extensão ↓", 3000);
-        }
+      const receivedData = event.data.data;
+      dadosExtensaoBrutos = receivedData || {};
 
-        document.getElementById('btn-organizar').style.display = 'block';
-        
-        // Automaticamente já organiza a primeira vez para facilitar para o usuário
-        organizarTudo();
-        
-        // Desce a tela até os resultados
-        setTimeout(() => { document.getElementById('btn-organizar').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+      // Se chegou algo da extensão (seja primeira vez ou nova loja), reseta a visualização
+      isSorted = false;
+      renderizarCaixa();
     });
 
-    // Helper functions idênticas às da extensão para manter compatibilidade
+    // Assim que a página abre, espera 1s para o bridge injetar e pede os dados salvos
+    setTimeout(() => {
+      window.postMessage({ type: "TWO_GET_COMPARADOR_DATA", id: Date.now() }, "*");
+    }, 1000);
+
+    // Helpers para formatar (idênticos à extensão)
     function extractProductInfo(titleStr) {
-        const titleLower = titleStr.toLowerCase();
-        let btuVal = null;
-        const btuMatch = titleLower.match(/(\d{1,2}\.?\d{3})\s*btus?/);
-        if (btuMatch) btuVal = parseInt(btuMatch[1].replace('.', ''), 10);
+      const titleLower = titleStr.toLowerCase();
+      let btuVal = null;
+      const btuMatch = titleLower.match(/(\d{1,2}\.?\d{3})\s*btus?/);
+      if (btuMatch) btuVal = parseInt(btuMatch[1].replace('.', ''), 10);
 
-        const isQF = titleLower.includes('quente/frio') || titleLower.includes('quente e frio') || titleLower.includes('quente/ frio') || titleLower.includes('quente / frio') || titleLower.includes('quente frio') || titleLower.includes('q/f');
-        const isSF = titleLower.includes('frio') && !isQF;
+      const isQF = titleLower.includes('quente/frio') || titleLower.includes('quente e frio') || titleLower.includes('quente/ frio') || titleLower.includes('quente / frio') || titleLower.includes('quente frio') || titleLower.includes('q/f');
+      const isSF = titleLower.includes('frio') && !isQF;
 
-        let type = 'Ar Condicionado';
-        if (titleLower.includes('teto')) type = 'Piso Teto';
-        else if (titleLower.includes('cassete')) type = 'Cassete';
-        else if (titleLower.includes('janela')) type = 'de Janela';
-        else if (titleLower.includes('portátil') || titleLower.includes('portatil')) type = 'Portátil';
-        else if (titleLower.includes('multi')) type = 'Multi Split';
-        else if (titleLower.includes('split') || titleLower.includes('hiwall') || titleLower.includes('hi-wall') || titleLower.includes('hi wall')) type = 'Hiwall';
+      let type = 'Ar Condicionado';
+      if (titleLower.includes('teto')) type = 'Piso Teto';
+      else if (titleLower.includes('cassete')) type = 'Cassete';
+      else if (titleLower.includes('janela')) type = 'de Janela';
+      else if (titleLower.includes('portátil') || titleLower.includes('portatil')) type = 'Portátil';
+      else if (titleLower.includes('multi')) type = 'Multi Split';
+      else if (titleLower.includes('split') || titleLower.includes('hiwall') || titleLower.includes('hi-wall') || titleLower.includes('hi wall')) type = 'Hiwall';
 
-        return { btuVal, isQF, isSF, type };
+      return { btuVal, isQF, isSF, type };
     }
 
     function generateSmartTitle(productsList) {
-        if (!productsList || productsList.length === 0) return 'Comparativo de Ar Condicionado';
-        const typesStats = {};
-        productsList.forEach(p => {
-            const info = extractProductInfo(p.title);
-            if (!typesStats[info.type]) typesStats[info.type] = { minBtu: Infinity, maxBtu: -Infinity, hasQF: false, hasSF: false };
-            if (info.btuVal) {
-                if (info.btuVal < typesStats[info.type].minBtu) typesStats[info.type].minBtu = info.btuVal;
-                if (info.btuVal > typesStats[info.type].maxBtu) typesStats[info.type].maxBtu = info.btuVal;
-            }
-            if (info.isQF) typesStats[info.type].hasQF = true;
-            if (info.isSF) typesStats[info.type].hasSF = true;
-        });
+      if (!productsList || productsList.length === 0) return 'Comparativo de Ar Condicionado';
+      const typesStats = {};
+      productsList.forEach(p => {
+        const info = extractProductInfo(p.title);
+        if (!typesStats[info.type]) typesStats[info.type] = { minBtu: Infinity, maxBtu: -Infinity, hasQF: false, hasSF: false };
+        if (info.btuVal) {
+          if (info.btuVal < typesStats[info.type].minBtu) typesStats[info.type].minBtu = info.btuVal;
+          if (info.btuVal > typesStats[info.type].maxBtu) typesStats[info.type].maxBtu = info.btuVal;
+        }
+        if (info.isQF) typesStats[info.type].hasQF = true;
+        if (info.isSF) typesStats[info.type].hasSF = true;
+      });
 
-        const orderedTypes = ['Hiwall', 'Piso Teto', 'Cassete', 'de Janela', 'Portátil', 'Multi Split', 'Ar Condicionado'];
-        const formatInt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
-        let titleLines = [];
+      const orderedTypes = ['Hiwall', 'Piso Teto', 'Cassete', 'de Janela', 'Portátil', 'Multi Split', 'Ar Condicionado'];
+      const formatInt = (n) => n.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+      let titleLines = [];
 
-        orderedTypes.forEach(t => {
-            if (typesStats[t]) {
-                const stats = typesStats[t];
-                let btuString = "";
-                if (stats.minBtu !== Infinity && stats.maxBtu !== -Infinity) {
-                    if (stats.minBtu === stats.maxBtu) btuString = `${formatInt(stats.minBtu)} Btus`;
-                    else btuString = `${formatInt(stats.minBtu)} a ${formatInt(stats.maxBtu)} Btus`;
-                }
-                let cicloString = "";
-                let emoji = "";
-                if (stats.hasQF && stats.hasSF) { cicloString = ""; emoji = ""; }
-                else if (stats.hasQF) { cicloString = "Quente/Frio"; emoji = "🔥❄️ "; }
-                else if (stats.hasSF) { cicloString = "Só Frio"; emoji = "❄️ "; }
+      orderedTypes.forEach(t => {
+        if (typesStats[t]) {
+          const stats = typesStats[t];
+          let btuString = "";
+          if (stats.minBtu !== Infinity && stats.maxBtu !== -Infinity) {
+            if (stats.minBtu === stats.maxBtu) btuString = `${formatInt(stats.minBtu)} Btus`;
+            else btuString = `${formatInt(stats.minBtu)} a ${formatInt(stats.maxBtu)} Btus`;
+          }
+          let cicloString = "";
+          let emoji = "";
+          if (stats.hasQF && stats.hasSF) { cicloString = ""; emoji = ""; }
+          else if (stats.hasQF) { cicloString = "Quente/Frio"; emoji = "🔥❄️ "; }
+          else if (stats.hasSF) { cicloString = "Só Frio"; emoji = "❄️ "; }
 
-                const parts = [t];
-                if (btuString) parts.push(btuString);
-                if (cicloString) parts.push(cicloString);
-                titleLines.push(`${emoji}${parts.join(' · ')}`.trim());
-            }
-        });
-        return titleLines.join('\n');
+          const parts = [t];
+          if (btuString) parts.push(btuString);
+          if (cicloString) parts.push(cicloString);
+          titleLines.push(`${emoji}${parts.join(' · ')}`.trim());
+        }
+      });
+      return titleLines.join('\n');
     }
 
     function formatProductText(title, spot, install) {
-        let emojiCycle = "❄️";
-        const titleLower = title.toLowerCase();
-        if (titleLower.includes('quente/frio') || titleLower.includes('quente e frio') || titleLower.includes('quente/ frio') || titleLower.includes('quente / frio') || titleLower.includes('quente frio') || titleLower.includes('q/f')) {
-            emojiCycle = "🔥❄️";
-        }
-        return `${emojiCycle} ${title}\n💰 ${spot}\n💳 ${install}`;
+      let emojiCycle = "❄️";
+      const titleLower = title.toLowerCase();
+      if (titleLower.includes('quente/frio') || titleLower.includes('quente e frio') || titleLower.includes('quente/ frio') || titleLower.includes('quente / frio') || titleLower.includes('quente frio') || titleLower.includes('q/f')) {
+        emojiCycle = "🔥❄️";
+      }
+      return `${emojiCycle} ${title}\n💰 ${spot}\n💳 ${install}`;
     }
 
     function parseSpotPrice(priceStr) {
-        if (!priceStr) return Infinity;
-        const match = priceStr.match(/R\$\s*([\d\.,]+)/);
-        if (match) {
-            let numStr = match[1].replace(/\./g, '').replace(',', '.');
-            return parseFloat(numStr) || Infinity;
-        }
-        return Infinity;
+      if (!priceStr) return Infinity;
+      const match = priceStr.match(/R\$\s*([\d\.,]+)/);
+      if (match) {
+        let numStr = match[1].replace(/\./g, '').replace(',', '.');
+        return parseFloat(numStr) || Infinity;
+      }
+      return Infinity;
     }
 
-    // Variável global para guardar o array unificado pronto para cópia
-    let unifiedAndSortedList = [];
+    function renderizarCaixa() {
+      const textarea = document.getElementById("caixa-comparador");
+      const conteudos = Object.values(dadosExtensaoBrutos);
 
-    function organizarTudo() {
-        const divInfo = document.getElementById("resultados-comparador");
-        divInfo.innerHTML = "";
-        unifiedAndSortedList = [];
+      let temProduto = false;
+      conteudos.forEach(list => { if (list.length > 0) temProduto = true; });
 
-        // 1. Achatar todos os produtos de todas as lojas num único array injetando a proveniência
+      if (!temProduto) {
+        textarea.value = "";
+        return;
+      }
+
+      if (isSorted) {
+        // == MODO: LISTA ÚNICA ORGANIZADA ==
+        let unifiedAndSortedList = [];
         for (const [storeName, products] of Object.entries(dadosExtensaoBrutos)) {
-            products.forEach(p => {
-                unifiedAndSortedList.push({
-                    store: storeName,
-                    title: p.title,
-                    spot: p.spot,
-                    install: p.install,
-                    image: p.image,
-                    _parsedPrice: parseSpotPrice(p.spot)
-                });
+          products.forEach(p => {
+            unifiedAndSortedList.push({
+              store: storeName,
+              title: p.title,
+              spot: p.spot,
+              install: p.install,
+              _parsedPrice: parseSpotPrice(p.spot)
             });
+          });
         }
 
-        // 2. Ordena usando a representação numérica do preço à vista
         unifiedAndSortedList.sort((a, b) => a._parsedPrice - b._parsedPrice);
-
-        // 3. Monta a Visualização
-        const titleStr = generateSmartTitle(unifiedAndSortedList);
-        
-        let htmlOut = `<div style="background: var(--card-bg); padding: 24px; border-radius: 12px; border: 1px solid var(--border); margin-top:24px;">`;
-        htmlOut += `<h3 style="color: var(--green); margin-top: 0; white-space: pre-line;">${titleStr}</h3>`;
-        htmlOut += `<div style="border-bottom: 1px solid var(--border); margin-bottom: 24px; padding-bottom: 24px;"></div>`;
-
-        unifiedAndSortedList.forEach(p => {
-            let badgeClass = "badge-dufrio";
-            if(p.store.toLowerCase().includes('leveros')) badgeClass = "badge-leveros";
-            if(p.store.toLowerCase().includes('central ar')) badgeClass = "badge-centralar";
-
-            let cycleEmoji = "❄️";
-            const tl = p.title.toLowerCase();
-            if (tl.includes('quente/frio') || tl.includes('q/f') || tl.includes('quente e frio')) cycleEmoji = "🔥❄️";
-
-            htmlOut += `
-              <div style="margin-bottom: 24px;">
-                 <span class="badge-store ${badgeClass}">${p.store}</span>
-                 <div style="font-weight: 800; font-size: 14px; margin-bottom: 8px;">${cycleEmoji} ${p.title}</div>
-                 <div style="color: var(--green); font-weight: 900; margin-bottom: 4px;">💰 ${p.spot}</div>
-                 <div style="font-size: 13px; color: var(--text-secondary);">💳 ${p.install}</div>
-              </div>
-            `;
-        });
-
-        htmlOut += `<button class="compare-copy-btn" onclick="copiarListaCampeao(this)">Copiar Lista (Pronta pro Whatsapp) 📋</button>`;
-        htmlOut += `</div>`;
-        
-        divInfo.innerHTML = htmlOut;
-    }
-
-    function copiarListaCampeao(btnElement) {
-        if(unifiedAndSortedList.length === 0) return;
 
         const titleStr = generateSmartTitle(unifiedAndSortedList);
         const titleText = titleStr.split('\n').map(l => `*${l}*`).join('\n');
 
         const listText = unifiedAndSortedList.map(p => {
-            // Embutimos a identificação da loja fisicamente na cópia para o Zap também
-            const formatBase = formatProductText(p.title, p.spot, p.install);
-            return `🏬 *Vendido por: ${p.store.toUpperCase()}*\n${formatBase}`;
+          const formatBase = formatProductText(p.title, p.spot, p.install);
+          return `🏬 *Vendido por: ${p.store.toUpperCase()}*\n${formatBase}`;
         }).join('\n\n_____\n\n');
 
-        const textToCopy = `${titleText}\n\n${listText}`;
+        textarea.value = `${titleText}\n\n=====================\n\n${listText}`;
+      } else {
+        // == MODO: LISTAS SEPARADAS POR LOJA (Como chegaram) ==
+        let blocos = [];
 
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            const old = btnElement.innerText;
-            btnElement.innerText = "Lista Final Copiada! ✔️";
-            setTimeout(() => btnElement.innerText = old, 3000);
-        });
+        for (const [storeName, products] of Object.entries(dadosExtensaoBrutos)) {
+          if (products.length === 0) continue;
+
+          const titleStr = generateSmartTitle(products);
+          const titleText = titleStr.split('\n').map(l => `*${l}*`).join('\n');
+          const listText = products.map(p => formatProductText(p.title, p.spot, p.install)).join('\n\n_____\n\n');
+
+          const bloco = `📦 *${storeName.toUpperCase()}*\n${titleText}\n\n${listText}`;
+          blocos.push(bloco);
+        }
+
+        textarea.value = blocos.join('\n\n\n=====================\n\n\n');
+      }
+    }
+
+    function organizarTudo() {
+      if (Object.keys(dadosExtensaoBrutos).length === 0) {
+        alert("Jogue itens da extensão para o comparador primeiro!");
+        return;
+      }
+      isSorted = true;
+      renderizarCaixa();
+    }
+
+    function copiarCaixa(btnElement) {
+      const textarea = document.getElementById("caixa-comparador");
+      if (textarea.value.trim() === "") {
+        alert("A caixa está vazia!");
+        return;
+      }
+
+      navigator.clipboard.writeText(textarea.value).then(() => {
+        const old = btnElement.innerText;
+        btnElement.innerText = "Texto Copiado! ✔️";
+        setTimeout(() => btnElement.innerText = old, 3000);
+      });
     }
 
   </script>

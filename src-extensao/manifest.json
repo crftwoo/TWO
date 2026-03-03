@@ -62,7 +62,8 @@
             "matches": [
                 "https://crftwoo.github.io/*",
                 "http://127.0.0.1:*/*",
-                "http://localhost:*/*"
+                "http://localhost:*/*",
+                "file:///*"
             ],
             "js": [
                 "bridge.js"
