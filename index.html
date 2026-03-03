@@ -9,7 +9,7 @@
     href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛠️</text></svg>">
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;800;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800;900&display=swap');
 
     * {
       box-sizing: border-box;
@@ -17,9 +17,15 @@
 
     :root {
       --green: #9BE20D;
-      --border: #1A1F24;
-      --bg-color: #000000;
-      --card-bg: #0B0F14;
+      --border: rgba(255, 255, 255, 0.05);
+      /* Cyber border */
+      --bg-color: #050505;
+      /* Blackout */
+      --card-bg: #0A0A0A;
+      /* Slightly above blackout */
+      --card-hover: rgba(255, 255, 255, 0.02);
+      --text-secondary: #71717a;
+      /* Zinc-500 equivalent */
     }
 
     body {
@@ -27,137 +33,202 @@
       background: var(--bg-color);
       color: #fff;
       font-family: 'Montserrat', sans-serif;
+      overflow-x: hidden;
     }
 
+    /* Scrollbars invisíveis para visual super clean */
+    ::-webkit-scrollbar {
+      width: 0px;
+      height: 0px;
+      background: transparent;
+    }
+
+    /* --- HEADER E TABS --- */
     .header {
       display: flex;
       align-items: center;
-      padding: 14px 20px;
+      padding: 16px 24px;
       border-bottom: 1px solid var(--border);
+      background: var(--bg-color);
+      position: sticky;
+      top: 0;
+      z-index: 50;
     }
 
     .menu-icon-btn {
-      padding: 12px 18px;
-      border-radius: 8px;
+      padding: 12px 20px;
+      border-radius: 12px;
       border: 1px solid var(--border);
-      background: transparent;
+      background: var(--card-bg);
       color: var(--green);
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
+      letter-spacing: 1px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
       font-family: 'Montserrat', sans-serif;
+      flex-shrink: 0;
     }
 
     .menu-icon-btn:hover {
-      border-color: #444;
+      border-color: rgba(155, 226, 13, 0.3);
+      background: rgba(155, 226, 13, 0.05);
     }
 
     .tabs {
       display: none;
-      gap: 10px;
-      margin-left: 14px;
+      gap: 12px;
+      margin-left: 20px;
+      /* Horizontal Scroll Otimizado */
+      overflow-x: auto;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      /* margem pro scroll */
     }
 
     .tab {
-      background: transparent;
-      color: #fff;
+      background: var(--card-bg);
+      color: var(--text-secondary);
       border: 1px solid var(--border);
-      padding: 12px 20px;
-      border-radius: 8px;
+      padding: 12px 24px;
+      border-radius: 12px;
       cursor: pointer;
       font-weight: 800;
+      font-size: 11px;
       text-transform: uppercase;
-      transition: all 0.2s ease;
+      letter-spacing: 0.5px;
+      transition: all 0.3s ease;
       font-family: 'Montserrat', sans-serif;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .tab:hover {
-      border-color: #444;
+      border-color: #333;
+      color: #fff;
     }
 
     .tab.active {
       border-color: var(--green);
       background: var(--green);
       color: #000;
-      box-shadow: 0 8px 15px rgba(155, 226, 13, 0.3);
-      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(155, 226, 13, 0.4);
     }
 
+    /* --- MENU PRINCIPAL (GRID) --- */
     .menu {
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 80px 20px;
-      max-width: 1000px;
+      max-width: 1100px;
       margin: 0 auto;
+    }
+
+    .menu-title {
+      font-size: 32px;
+      font-weight: 900;
+      margin-bottom: 60px;
+      text-transform: uppercase;
+      letter-spacing: -1px;
+      text-align: center;
+    }
+
+    .menu-title span {
+      color: var(--green);
+      font-style: italic;
     }
 
     .menu-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      justify-content: center;
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 24px;
       width: 100%;
     }
 
     .menu-item {
-      height: 220px;
+      height: 200px;
       background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 20px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: transform 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
     }
 
     .menu-item:hover {
-      transform: translateY(-4px);
-      border-color: #333;
+      transform: translateY(-5px);
+      border-color: rgba(155, 226, 13, 0.3);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(155, 226, 13, 0.05);
+    }
+
+    .menu-item:hover::before {
+      opacity: 1;
     }
 
     .menu-item-icon {
-      width: 72px;
-      height: 72px;
-      border-radius: 12px;
-      background: transparent;
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-bottom: 18px;
-      transition: transform 0.3s ease;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
     }
 
     .icon-svg {
-      width: 48px;
-      height: 48px;
-      stroke: var(--text-secondary, #BFC3C7);
+      width: 32px;
+      height: 32px;
+      stroke: var(--text-secondary);
+      stroke-width: 2;
       transition: all 0.3s ease;
     }
 
     .menu-item:hover .menu-item-icon {
-      transform: scale(1.1);
+      background: rgba(155, 226, 13, 0.1);
+      border-color: rgba(155, 226, 13, 0.2);
+      transform: scale(1.05);
     }
 
     .menu-item:hover .icon-svg {
       stroke: var(--green);
-      filter: drop-shadow(0 0 8px rgba(155, 226, 13, 0.4));
+      filter: drop-shadow(0 0 10px rgba(155, 226, 13, 0.6));
     }
 
     .menu-item-title {
-      text-align: center;
       font-weight: 800;
+      font-size: 14px;
       text-transform: uppercase;
-      letter-spacing: -0.5px;
+      letter-spacing: 1px;
+      color: #fff;
     }
 
+    /* --- I-FRAME CONTENT --- */
     .content {
       width: 100%;
-      height: calc(100vh - 62px);
+      height: calc(100vh - 70px);
       display: none;
     }
 
@@ -168,32 +239,82 @@
       background: var(--bg-color);
     }
 
-    .menu-title {
-      font-size: 36px;
-      font-weight: 900;
-      margin-bottom: 64px;
+    /* --- TOOLTIP & ATUALIZAÇÃO --- */
+    #lastUpdate {
+      font-size: 10px !important;
       text-transform: uppercase;
-      letter-spacing: -1px;
+      letter-spacing: 1px;
     }
 
+    .tooltip {
+      position: relative;
+      display: inline-block;
+      cursor: help;
+    }
+
+    .tooltiptext {
+      visibility: hidden;
+      width: 280px;
+      background-color: var(--card-bg);
+      color: #fff;
+      text-align: center;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      position: absolute;
+      z-index: 100;
+      bottom: 130%;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0;
+      transition: all 0.3s ease;
+      font-size: 11px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.8);
+      pointer-events: none;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+      bottom: 140%;
+    }
+
+    .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -6px;
+      border-width: 6px;
+      border-style: solid;
+      border-color: var(--border) transparent transparent transparent;
+    }
+
+
+    /* ==========================================
+       📱 APP-LIKE MOBILE OPTIMIZATION
+       ========================================== */
     @media (max-width: 768px) {
       .header {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
+        padding: 16px;
+      }
+
+      .menu-icon-btn {
+        margin-bottom: 16px;
       }
 
       .tabs {
         margin-left: 0;
-        margin-top: 14px;
-        flex-wrap: wrap;
-        width: 100%;
-      }
-
-      .tab {
-        flex: 1 1 calc(50% - 5px);
-        text-align: center;
-        padding: 10px;
-        font-size: 11px;
+        width: 100vw;
+        margin-left: -16px;
+        /* Tirar padding do pai */
+        padding-left: 16px;
+        /* Devolver padding interno pro primeiro item */
+        padding-right: 16px;
+        /* Ultimo item não grudar na borda */
       }
 
       .menu {
@@ -201,80 +322,47 @@
       }
 
       .menu-title {
-        font-size: 28px;
-        text-align: center;
-        margin-bottom: 32px;
+        font-size: 24px;
+        margin-bottom: 40px;
       }
 
       .menu-grid {
         grid-template-columns: 1fr;
+        gap: 16px;
       }
 
       .menu-item {
-        height: 140px;
+        height: 100px;
+        /* Bem mais achatado, estilo App */
+        border-radius: 16px;
         flex-direction: row;
         justify-content: flex-start;
-        padding: 0 24px;
-        gap: 24px;
+        padding: 0 20px;
+        gap: 20px;
       }
 
       .menu-item-icon {
+        width: 48px;
+        height: 48px;
         margin-bottom: 0;
+        /* Tira margem de baixo */
+        border-radius: 12px;
+      }
+
+      .icon-svg {
+        width: 24px;
+        height: 24px;
       }
 
       .menu-item-title {
         text-align: left;
+        font-size: 13px;
       }
-    }
 
-    /* Tooltip container */
-    .tooltip {
-      position: relative;
-      display: inline-block;
-      cursor: help;
-    }
-
-    /* Tooltip text */
-    .tooltip .tooltiptext {
-      visibility: hidden;
-      width: 250px;
-      background-color: var(--card-bg);
-      color: #fff;
-      text-align: center;
-      padding: 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      position: absolute;
-      z-index: 1;
-      bottom: 125%;
-      /* Position above the text */
-      left: 50%;
-      margin-left: -125px;
-      /* Center the tooltip */
-      opacity: 0;
-      transition: opacity 0.3s;
-      font-size: 11px;
-      font-weight: normal;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Tooltip arrow */
-    .tooltip .tooltiptext::after {
-      content: "";
-      position: absolute;
-      top: 100%;
-      /* At the bottom of the tooltip */
-      left: 50%;
-      margin-left: -5px;
-      border-width: 5px;
-      border-style: solid;
-      border-color: var(--border) transparent transparent transparent;
-    }
-
-    /* Show the tooltip text when you mouse over the tooltip container */
-    .tooltip:hover .tooltiptext {
-      visibility: visible;
-      opacity: 1;
+      .menu-item:hover {
+        transform: translateX(5px);
+        /* Move pro lado ao inves de cima no cel */
+      }
     }
   </style>
 </head>
@@ -287,7 +375,7 @@
   </div>
 
   <div class="menu" id="menu">
-    <div class="menu-title">Ferramentas – Thiago</div>
+    <div class="menu-title">Ferramentas <span>Thiago</span></div>
     <div class="menu-grid" id="menuGrid"></div>
     <div style="margin-top: 40px; text-align: center;">
       <div id="lastUpdate" class="tooltip" style="font-size: 12px; color: #555; font-weight: 500;">
