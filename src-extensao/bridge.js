@@ -20,6 +20,12 @@ window.addEventListener("message", (event) => {
         return;
     }
 
+    if (event.data.type === "TWO_CLEAR_COMPARADOR_DATA") {
+        // Obter os dados diretamente do banco de dados da extensão
+        chrome.storage.local.remove(['comparador_data']);
+        return;
+    }
+
     if (event.data.type === "TWO_EXTENSION_REQUEST") {
         // Forward the request to the extension's background script
         chrome.runtime.sendMessage({

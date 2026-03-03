@@ -372,8 +372,8 @@
           style="border-color: var(--green); color: var(--green);">Organizar Todos pelo Menor Preço 🏆</button>
         <button onclick="copiarCaixa(this)"
           style="background: var(--green); color: #000; border-color: var(--green);">Copiar Texto da Caixa 📋</button>
-        <button onclick="limparComparador()" style="border-color: #ff4444; color: #ff4444;">Limpar Lojas Salvas
-          🗑️</button>
+        <button onclick="limparComparador()" style="border-color: #ff4444; color: #ff4444; margin-left: auto;">Limpar
+          Lista 🗑️</button>
       </div>
     </div>
   </div>
@@ -580,14 +580,22 @@
     let clipboardTextClean = "";
 
     function limparComparador() {
-      if (confirm("Tem certeza que quer limpar todos os dados salvos da extensão no Comparador?")) {
-        // Remove do local storage da extensao mandando a mensagem indiretamente via nova action
-        // Mas como nós nao temos como escrever via bridge direto (bridge nao tem permissions),
-        // Pelo menos limpamos o state atual
+      if (confirm("Tem certeza que quer limpar a lista para começar de novo?")) {
+        // Limpa a interface imediatamente
         dadosExtensaoBrutos = {};
         isSorted = false;
         renderizarCaixa();
-        alert("Memória limpa! Agora se você for na loja e clicar Jogar p/ Comparador ele começará do zero.");
+
+        // Pede pra ponte limpar na extensão também pra evitar lista fantasma voltando depois
+        window.postMessage({ type: "TWO_CLEAR_COMPARADOR_DATA" }, "*");
+
+        // Dá um feedback extra pro usuário
+        const btnLimpar = document.querySelector('button[onclick="limparComparador()"]');
+        if (btnLimpar) {
+          const txtOriginal = btnLimpar.innerText;
+          btnLimpar.innerText = "Lista Limpa! ✔️";
+          setTimeout(() => btnLimpar.innerText = txtOriginal, 2000);
+        }
       }
     }
 
