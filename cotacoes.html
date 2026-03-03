@@ -38,6 +38,17 @@
         input[type=number] {
             -moz-appearance: textfield;
         }
+
+        /* Classe especial p/ forçar layout de PC no momento do print via html2canvas no mobile */
+        .print-mode {
+            width: 1024px !important;
+            max-width: 1024px !important;
+            min-width: 1024px !important;
+            position: absolute !important;
+            top: 0;
+            left: 0;
+            z-index: -9999;
+        }
     </style>
 </head>
 
@@ -280,11 +291,25 @@
             const copiarImagem = async () => {
                 if (!tableRef.current) return;
                 try {
+                    // Adiciona uma classe temporária para forçar a largura antes do print
+                    tableRef.current.classList.add('print-mode');
+
                     const canvas = await html2canvas(tableRef.current, {
                         backgroundColor: '#050505',
-                        scale: 2 // High resolution
+                        scale: 2, // High resolution
+                        windowWidth: 1024, // Força render como se fosse tela de PC
+                        width: 1024, // Fixa a largura do canvas independente do celular
+                        onclone: (clonedDoc) => {
+                            // Garante que o elemento no clone virtual tenha os tamanhos forçados
+                            const clonedElement = clonedDoc.getElementById('resultado-orcamento');
+                            if (clonedElement) {
+                                clonedElement.style.width = '1024px';
+                                clonedElement.style.minWidth = '1024px';
+                            }
+                        }
                     });
 
+                    tableRef.current.classList.remove('print-mode');
                     canvas.toBlob(async (blob) => {
                         try {
                             await navigator.clipboard.write([
@@ -360,7 +385,7 @@
                                         </button>
                                     </div>
 
-                                    <div ref={tableRef} className="space-y-6 top-0 p-8 pt-6 pb-6 bg-[#050505] rounded-3xl border border-white/5">
+                                    <div id="resultado-orcamento" ref={tableRef} className="space-y-6 top-0 p-8 pt-6 pb-6 bg-[#050505] rounded-3xl border border-white/5 w-full">
                                         <div className="text-center mb-4">
                                             <h2 className="text-2xl font-black uppercase italic text-[#9BE20D] tracking-widest">ORÇAMENTO</h2>
                                         </div>
