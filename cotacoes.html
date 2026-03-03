@@ -1,29 +1,43 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Cotação Express - Final</title>
-    
+
     <!-- Tailwind CSS para o Design Premium -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
+
     <!-- React e Babel para a Lógica Inteligente -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+
     <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
-        body { font-family: 'Inter', sans-serif; background-color: #050505; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+        }
+
         /* Esconder setas do input number */
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
+
 <body>
     <div id="root"></div>
 
@@ -51,8 +65,7 @@
             "500mm": { n: "Suporte 50cm para Split 12000 a 24000 BTUs 80 kg 500mm Hulter", p: 49.90 },
             "600mm": { n: "Suporte Split Barril 60 x 50 cm 18000 a 48000 BTUs 160 kg 600mm Hulter", p: 119.00 },
             "900mm": { n: "Suporte Split Hulter 18 à 60.000 BTUs 900mm x 600mm", p: 189.00 },
-            "evap": { n: "Suporte Evaporadora Piso teto Hulter 30 à 80.000 BTUs 600mm x230mm x 200mm", p: 99.00 },
-            "30": { n: "Suporte Split Hulter 12 à 30.000 BTUs 500x500mm", p: 49.00 }
+            "evap": { n: "Suporte Evaporadora Piso teto Hulter 30 à 80.000 BTUs 600mm x230mm x 200mm", p: 99.00 }
         };
         const CAIXAS = {
             "29": { n: "Caixa de Passagem Split 29cm x 17 Reversível Hulter", p: 13.90 },
@@ -77,7 +90,7 @@
                     const l = linha.trim();
                     if (!l) return;
                     let identificado = false;
-                    
+
                     // Extrai a quantidade do início da linha (ex: "2 panquecas" -> 2)
                     let qtdLinha = 1;
                     const matchQtdInicio = l.match(/^(\d+)/);
@@ -88,7 +101,7 @@
                         if (l.includes(bitola) && (l.includes('cano') || l.includes('cobre') || l.includes('panq') || l.includes('panc'))) {
                             const mMatch = l.match(/(\d+)\s*(m|metro|metros)/);
                             const panMatch = l.match(/(panq|panc|panqueca)/);
-                            
+
                             let metros = 0;
                             if (mMatch) metros = parseInt(mMatch[1]);
                             else if (panMatch) metros = qtdLinha * 15;
@@ -127,7 +140,7 @@
                                 identificado = true; break;
                             }
                         }
-                        
+
                         // Isolamento generico (sem bitola)
                         if (!achouBitola && (l.includes('isolamento') || (l.includes('isolante') && !l.includes('fita')))) {
                             pedirIsolamentoGenerico = true;
@@ -160,11 +173,17 @@
                     if (!identificado && l.includes('suporte')) {
                         let chaveSup = null;
                         for (const key in SUPORTES) {
-                            if (l.includes(key) || (key==='30' && l.match(/\b30\b/))) {
+                            if (l.includes(key)) {
                                 chaveSup = key;
                                 break;
                             }
                         }
+
+                        // Se não encontrou suporte por nome, mas fala em "30" (ex: "Suporte condensadora 30"), usa o 500mm
+                        if (!chaveSup && l.match(/\b30\b/)) {
+                            chaveSup = '500mm';
+                        }
+
                         if (chaveSup) {
                             const chave = `sup-${chaveSup}`;
                             const existente = mapaItens.get(chave);
@@ -275,12 +294,12 @@
                                     </div>
                                 </div>
 
-                                <textarea 
+                                <textarea
                                     value={input} onChange={e => setInput(e.target.value)}
                                     placeholder="Cole a lista aqui..."
                                     className="w-full h-80 bg-zinc-900/30 border border-white/10 rounded-2xl p-4 font-mono text-sm outline-none focus:border-[#9BE20D] transition-all"
                                 />
-                                
+
                                 <button onClick={processarOrcamento} className="w-full bg-[#9BE20D] text-black font-black py-4 rounded-xl uppercase tracking-widest hover:opacity-90 transition-all">
                                     Gerar Orçamento
                                 </button>
@@ -334,4 +353,5 @@
         root.render(<App />);
     </script>
 </body>
+
 </html>
