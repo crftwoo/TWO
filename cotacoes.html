@@ -80,6 +80,7 @@
             const [valorKgCobre, setValorKgCobre] = useState(155);
             const [itens, setItens] = useState([]);
             const [erros, setErros] = useState([]);
+            const [copiado, setCopiado] = useState(false);
             const tableRef = React.useRef(null);
 
             const totalGeral = useMemo(() => itens.reduce((acc, item) => acc + item.total, 0), [itens]);
@@ -289,7 +290,8 @@
                             await navigator.clipboard.write([
                                 new ClipboardItem({ 'image/png': blob })
                             ]);
-                            alert('Imagem copiada para a área de transferência!');
+                            setCopiado(true);
+                            setTimeout(() => setCopiado(false), 2000);
                         } catch (err) {
                             // Se a área de transferência falhar, força o download
                             const link = document.createElement('a');
@@ -351,15 +353,19 @@
 
                             {/* Sessão de Orçamento (Baixo - Otimizada para Print) */}
                             {itens.length > 0 && (
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-end mb-2">
-                                        <h2 className="text-[10px] font-bold uppercase tracking-widest text-[#9BE20D]">Resultado do Orçamento</h2>
-                                        <button onClick={copiarImagem} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold py-2 px-4 rounded-lg transition-colors">
-                                            <span>COPIAR IMAGEM</span>
+                                <div className="space-y-4">
+                                    <div className="flex justify-end">
+                                        <button onClick={copiarImagem} className={`flex items-center gap-2 text-[10px] font-bold py-2 px-6 rounded-lg transition-all ${copiado ? 'bg-[#9BE20D] text-black scale-95' : 'bg-white/10 hover:bg-white/20 text-white'}`}>
+                                            <span>{copiado ? "✔ COPIADO COM SUCESSO" : "COPIAR IMAGEM"}</span>
                                         </button>
                                     </div>
 
-                                    <div ref={tableRef} className="space-y-6 pt-2 pb-2 bg-[#050505]">
+                                    <div ref={tableRef} className="space-y-6 top-0 p-8 pt-6 pb-6 bg-[#050505] rounded-3xl border border-white/5">
+                                        <div className="text-center mb-4">
+                                            <h2 className="text-2xl font-black uppercase italic text-[#9BE20D] tracking-widest">ORÇAMENTO DE MATERIAIS</h2>
+                                            <p className="text-zinc-500 text-[10px] uppercase tracking-widest mt-1">Gerado via Cotação Express</p>
+                                        </div>
+
                                         <div className="bg-[#0A0A0A] border border-white/5 rounded-2xl overflow-hidden shadow-2xl">
                                             <table className="w-full text-left text-xs">
                                                 <thead>
