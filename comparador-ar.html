@@ -490,9 +490,14 @@
       renderizarCaixa();
     });
 
-    // Assim que a página abre, espera 1s para o bridge injetar e pede os dados salvos
+    // Assim que a página abre, limpa tudo para começar uma sessão fresca (pedido do usuário)
     setTimeout(() => {
-      window.postMessage({ type: "TWO_GET_COMPARADOR_DATA", id: Date.now() }, "*");
+      // Envia o comando para apagar a memória da extensão
+      window.postMessage({ type: "TWO_CLEAR_COMPARADOR_DATA" }, "*");
+      // Garante que a tela comece vazia
+      dadosExtensaoBrutos = {};
+      isSorted = false;
+      renderizarCaixa();
     }, 1000);
 
     // Helpers para formatar (idênticos à extensão)
