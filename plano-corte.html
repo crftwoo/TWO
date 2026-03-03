@@ -9,80 +9,122 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;800;900&display=swap');
 
+    * {
+      box-sizing: border-box;
+    }
+
     :root {
       --green: #9BE20D;
-      --border: #1A1F24;
-      --bg-color: #000000;
-      --card-bg: #0B0F14;
+      --border: rgba(255, 255, 255, 0.05);
+      --bg-color: #050505;
+      --card-bg: #0A0A0A;
+      --text-secondary: #71717a;
     }
 
     body {
       font-family: 'Montserrat', sans-serif;
       background: var(--bg-color);
       color: #fff;
-      padding: 20px;
+      padding: 40px 20px;
       margin: 0;
     }
 
     .container {
       max-width: 1000px;
       margin: 0 auto;
+      animation: fadeIn 0.6s ease;
     }
 
-    h2 {
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      font-size: 32px;
       font-weight: 900;
-      margin: 20px 0;
+      margin-bottom: 8px;
+      letter-spacing: -1px;
       text-transform: uppercase;
-      letter-spacing: -0.5px;
-      font-size: 28px;
-      border-bottom: 2px solid var(--border);
-      padding-bottom: 10px;
+      font-style: italic;
+      color: var(--green);
+    }
+
+    .sub-title {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
     }
 
     h3 {
       font-weight: 800;
       margin-top: 0;
+      margin-bottom: 16px;
       text-transform: uppercase;
-      letter-spacing: -0.5px;
+      letter-spacing: 1px;
+      font-size: 13px;
+      color: var(--green);
     }
 
     textarea {
       background: var(--bg-color);
       color: #fff;
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px;
+      border-radius: 12px;
+      padding: 20px;
       font-family: 'Montserrat', sans-serif;
       font-size: 14px;
       box-sizing: border-box;
       resize: vertical;
       outline: none;
-      transition: border-color 0.2s;
+      transition: all 0.3s ease;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
     }
 
     textarea:focus {
-      border-color: var(--green);
+      border-color: rgba(155, 226, 13, 0.4);
+      box-shadow: 0 0 0 1px var(--green);
+    }
+
+    textarea::placeholder {
+      color: #3f3f46;
     }
 
     .box {
       background: var(--card-bg);
-      padding: 24px;
-      margin-top: 20px;
-      border-radius: 8px;
+      padding: 32px;
+      margin-top: 24px;
+      border-radius: 20px;
       border: 1px solid var(--border);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     button {
       margin-top: 16px;
-      padding: 12px 24px;
-      background: transparent;
+      padding: 16px 32px;
+      background: var(--bg-color);
       color: #fff;
       border: 1px solid var(--border);
       font-weight: 800;
       text-transform: uppercase;
-      border-radius: 8px;
+      letter-spacing: 1px;
+      font-size: 12px;
+      border-radius: 12px;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-family: 'Montserrat', sans-serif;
     }
 
     button:hover {
@@ -90,56 +132,80 @@
       color: #000;
       border-color: var(--green);
       transform: translateY(-2px);
-      box-shadow: 0 4px 10px rgba(155, 226, 13, 0.3);
+      box-shadow: 0 4px 15px rgba(155, 226, 13, 0.3);
     }
 
     .decision {
-      margin-top: 20px;
-      padding: 24px;
-      background: #11151c;
+      margin-top: 24px;
+      padding: 32px;
+      background: var(--card-bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .decision h3 {
+      color: #fff;
     }
 
     table {
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       width: 100%;
-      margin-top: 20px;
+      margin-top: 16px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
     }
 
     th,
     td {
-      border: 1px solid var(--border);
-      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      padding: 16px;
       text-align: center;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
     }
 
+    td {
+      border-right: 1px solid var(--border);
+    }
+
+    td:last-child {
+      border-right: none;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
     th {
-      background: transparent;
-      color: #BFC3C7;
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text-secondary);
       font-weight: 800;
       text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 11px;
     }
 
     .sub {
-      font-size: 12px;
-      color: #BFC3C7;
+      font-size: 10px;
+      color: var(--text-secondary);
       margin-top: 4px;
+      display: block;
     }
 
     .copybox {
       background: var(--card-bg);
       border: 1px solid var(--border);
-      padding: 24px;
-      margin-top: 25px;
-      border-radius: 8px;
+      padding: 32px;
+      margin-top: 32px;
+      border-radius: 20px;
     }
 
     .copybox textarea {
       width: 100%;
-      height: 180px;
+      height: 200px;
     }
 
     select,
@@ -147,27 +213,32 @@
       background: var(--bg-color);
       color: #fff;
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px;
+      border-radius: 8px;
+      padding: 10px;
       font-family: 'Montserrat', sans-serif;
       font-weight: 600;
+      font-size: 13px;
       outline: none;
+      transition: all 0.3s ease;
+      width: 100%;
+      text-align: center;
     }
 
     select:focus,
     input:focus {
-      border-color: var(--green);
+      border-color: rgba(155, 226, 13, 0.4);
+      box-shadow: 0 0 0 1px var(--green);
     }
 
     .hidden {
       display: none !important;
     }
 
-    /* Wrap para tabelas não quebrarem a tela do mobile */
     .table-responsive {
       width: 100%;
       overflow-x: auto;
       margin-top: 20px;
+      border-radius: 12px;
     }
 
     .table-responsive table {
@@ -176,33 +247,30 @@
 
     @media (max-width: 768px) {
       body {
-        padding: 16px;
+        padding: 24px 16px;
       }
 
-      h2 {
-        font-size: 24px;
-      }
-
-      h3 {
-        font-size: 16px;
+      h1 {
+        font-size: 28px;
       }
 
       button {
         width: 100%;
-        margin-top: 12px;
+        margin-top: 16px;
+        padding: 20px;
       }
 
       .box {
-        padding: 16px;
+        padding: 20px;
       }
 
       .decision {
-        padding: 16px;
+        padding: 20px;
       }
 
       th,
       td {
-        padding: 8px;
+        padding: 12px;
         font-size: 12px;
       }
     }
@@ -213,7 +281,7 @@
 
   <div class="container">
     <h1>Plano de Corte – Painéis</h1>
-    <div class="sub">Otimize os cortes de painéis PIR/EPS para minimizar o desperdício de material.</div>
+    <div class="sub-title">Otimize os cortes de painéis PIR/EPS para minimizar o desperdício de material.</div>
 
     <!-- NOVA ETAPA: SOLICITAÇÃO DO CLIENTE -->
     <div class="box">
