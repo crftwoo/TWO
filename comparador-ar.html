@@ -309,6 +309,86 @@
       color: white;
     }
 
+    .filter-section {
+      width: 100%;
+      max-width: 800px;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .filter-section p {
+      margin: 0 0 12px 0;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-secondary);
+    }
+
+    .filter-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .filter-badges:last-child {
+      margin-bottom: 0;
+    }
+
+    .filter-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      color: #777;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .filter-badge:hover {
+      background: #222;
+    }
+
+    .filter-badge.active {
+      color: #000;
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .filter-badge.active[data-filter="premium"] {
+      background: #b08d57;
+    }
+
+    .filter-badge.active[data-filter="boa"] {
+      background: #00b050;
+    }
+
+    .filter-badge.active[data-filter="inter"] {
+      background: #ffc000;
+    }
+
+    .filter-badge.active[data-filter="basica"] {
+      background: #ff0000;
+    }
+
+    .filter-badge.active[data-filter="sf"] {
+      background: #4ba3e3;
+    }
+
+    .filter-badge.active[data-filter="qf"] {
+      background: #e36a4b;
+    }
+
     .compare-copy-btn {
       width: auto !important;
       margin: 32px auto 0 !important;
@@ -465,6 +545,28 @@
 
       <div id="caixa-comparador" class="fake-textarea">Nenhum produto enviado pela extensão ainda...</div>
 
+      <div class="filter-section" id="filter-section" style="display: none;">
+        <p>Filtrar por Qualidade (Marcas)</p>
+        <div class="filter-badges">
+          <div class="filter-badge active" data-filter="premium" onclick="toggleFilter('qualidade', 'premium', this)">🔝
+            Premium</div>
+          <div class="filter-badge active" data-filter="boa" onclick="toggleFilter('qualidade', 'boa', this)">🟢 Boa
+          </div>
+          <div class="filter-badge active" data-filter="inter" onclick="toggleFilter('qualidade', 'inter', this)">🟡
+            Intermediária</div>
+          <div class="filter-badge active" data-filter="basica" onclick="toggleFilter('qualidade', 'basica', this)">🔴
+            Básica</div>
+          <div class="filter-badge active" data-filter="outra" onclick="toggleFilter('qualidade', 'outra', this)">⚪
+            Desconhecida</div>
+        </div>
+        <p>Filtrar por Ciclo</p>
+        <div class="filter-badges">
+          <div class="filter-badge active" data-filter="sf" onclick="toggleFilter('ciclo', 'sf', this)">❄️ Só Frio</div>
+          <div class="filter-badge active" data-filter="qf" onclick="toggleFilter('ciclo', 'qf', this)">🔥❄️ Quente/Frio
+          </div>
+        </div>
+      </div>
+
       <div class="compare-actions">
         <button id="btn-organizar" class="tech-btn" onclick="organizarTudo()"
           style="--btn-color: var(--green);">Organizar Todos pelo Menor Preço 🏆</button>
@@ -483,6 +585,39 @@
   <script>
     let dados = [], tipoSelecionado = null, btusSelecionado = null, cicloSelecionado = null;
     let ativoTipo = null, ativoBtu = null, ativoCiclo = null;
+
+    // Estado dos Filtros
+    let ACTIVE_FILTERS = {
+      qualidade: { premium: true, boa: true, inter: true, basica: true, outra: true },
+      ciclo: { sf: true, qf: true }
+    };
+
+    const QUALITY_BRANDS = {
+      premium: ['daikin', 'fujitsu', 'hitachi', 'trane'],
+      boa: ['lg', 'samsung', 'gree', 'carrier', 'midea', 'hisense'],
+      inter: ['springer', 'elgin', 'tcl', 'agratto', 'electrolux'],
+      basica: ['consul', 'brastemp', 'philco', 'eos', 'britânia', 'britania', 'admiral', 'cadence', 'comfee']
+    };
+
+    function identificarQualidadeDaMarca(titulo) {
+      const lowerT = titulo.toLowerCase();
+      for (const [q, marcas] of Object.entries(QUALITY_BRANDS)) {
+        for (const m of marcas) {
+          if (lowerT.includes(m)) return q;
+        }
+      }
+      return 'outra';
+    }
+
+    function toggleFilter(category, val, element) {
+      ACTIVE_FILTERS[category][val] = !ACTIVE_FILTERS[category][val];
+      if (ACTIVE_FILTERS[category][val]) {
+        element.classList.add('active');
+      } else {
+        element.classList.remove('active');
+      }
+      renderizarCaixa();
+    }
 
     const imagens = {
       "Hiwall": "img/hi_wall.png",
@@ -723,6 +858,21 @@
       }
     }
 
+    function produtoPassaNoFiltro(p) {
+      const qualidade = identificarQualidadeDaMarca(p.title);
+      if (!ACTIVE_FILTERS.qualidade[qualidade]) return false;
+
+      const tl = p.title.toLowerCase();
+      let cicloType = 'sf'; // default Só Frio
+      if (tl.includes('quente/frio') || tl.includes('quente e frio') || tl.includes('q/f') || tl.includes('quente / frio') || tl.includes('quente frio')) {
+        cicloType = 'qf';
+      }
+
+      if (!ACTIVE_FILTERS.ciclo[cicloType]) return false;
+
+      return true;
+    }
+
     function renderizarCaixa() {
       const divCaixa = document.getElementById("caixa-comparador");
       const conteudos = Object.values(dadosExtensaoBrutos);
@@ -735,10 +885,13 @@
       Object.values(dataToProcess).forEach(list => { if (Array.isArray(list) && list.length > 0) temProduto = true; });
 
       if (!temProduto) {
+        document.getElementById('filter-section').style.display = 'none';
         divCaixa.innerHTML = '<span style="color: #666;">Nenhum produto enviado pela extensão ainda...</span>';
         clipboardTextClean = "";
         return;
       }
+
+      document.getElementById('filter-section').style.display = 'block';
 
       let htmlOut = "";
       let plainTextOut = "";
@@ -749,13 +902,16 @@
         for (const [storeName, products] of Object.entries(dataToProcess)) {
           if (Array.isArray(products)) {
             products.forEach(p => {
-              unifiedAndSortedList.push({
+              const tempP = {
                 store: storeName,
                 title: p.title,
                 spot: p.spot,
                 install: p.install,
                 _parsedPrice: parseSpotPrice(p.spot)
-              });
+              };
+              if (produtoPassaNoFiltro(tempP)) {
+                unifiedAndSortedList.push(tempP);
+              }
             });
           }
         }
@@ -796,15 +952,18 @@
         for (const [storeName, products] of Object.entries(dataToProcess)) {
           if (!Array.isArray(products) || products.length === 0) continue;
 
+          const filteredProducts = products.filter(p => produtoPassaNoFiltro(p));
+          if (filteredProducts.length === 0) continue; // Pula a loja inteira se todo mundo foi filtrado
+
           let badgeClass = "dufrio";
           if (storeName.toLowerCase().includes('leveros')) badgeClass = "leveros";
           if (storeName.toLowerCase().includes('central ar')) badgeClass = "centralar";
 
-          const titleStr = generateSmartTitle(products);
+          const titleStr = generateSmartTitle(filteredProducts);
           const titleText = titleStr.split('\n').map(l => `*${l}*`).join('\n');
 
           // HTML version
-          const listItemsHtml = products.map(p => {
+          const listItemsHtml = filteredProducts.map(p => {
             let emojiCycle = "❄️";
             const tl = p.title.toLowerCase();
             if (tl.includes('quente/frio') || tl.includes('quente e frio') || tl.includes('q/f')) emojiCycle = "🔥❄️";
@@ -814,13 +973,18 @@
           blocosHtml.push(blocoHtml);
 
           // Plain string version (Sem loja)
-          const listItemsPlain = products.map(p => formatProductText(p.title, p.spot, p.install));
+          const listItemsPlain = filteredProducts.map(p => formatProductText(p.title, p.spot, p.install));
           const blocoPlain = `${titleText}\n\n${listItemsPlain.join('\n\n_____\n\n')}`;
           blocosPlain.push(blocoPlain);
         }
 
-        htmlOut = blocosHtml.join('\n\n\n=====================\n\n\n');
-        plainTextOut = blocosPlain.join('\n\n\n=====================\n\n\n');
+        htmlOut = blocosHtml.length > 0 ? blocosHtml.join('\n\n\n=====================\n\n\n') : '<span style="color:#666;">Nenhum produto atende aos filtros atuais...</span>';
+        plainTextOut = blocosPlain.length > 0 ? blocosPlain.join('\n\n\n=====================\n\n\n') : '';
+      }
+
+      if (isSorted && unifiedAndSortedList.length === 0) {
+        htmlOut = '<span style="color:#666;">Nenhum produto atende aos filtros atuais...</span>';
+        plainTextOut = '';
       }
 
       divCaixa.innerHTML = htmlOut;
