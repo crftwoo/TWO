@@ -51,7 +51,8 @@
             "500mm": { n: "Suporte 50cm para Split 12000 a 24000 BTUs 80 kg 500mm Hulter", p: 49.90 },
             "600mm": { n: "Suporte Split Barril 60 x 50 cm 18000 a 48000 BTUs 160 kg 600mm Hulter", p: 119.00 },
             "900mm": { n: "Suporte Split Hulter 18 à 60.000 BTUs 900mm x 600mm", p: 189.00 },
-            "evap": { n: "Suporte Evaporadora Piso teto Hulter 30 à 80.000 BTUs 600mm x230mm x 200mm", p: 99.00 }
+            "evap": { n: "Suporte Evaporadora Piso teto Hulter 30 à 80.000 BTUs 600mm x230mm x 200mm", p: 99.00 },
+            "30": { n: "Suporte Split Hulter 12 à 30.000 BTUs 500x500mm", p: 49.00 }
         };
         const CAIXAS = {
             "29": { n: "Caixa de Passagem Split 29cm x 17 Reversível Hulter", p: 13.90 },
@@ -70,19 +71,29 @@
                 const linhas = input.toLowerCase().split('\n');
                 const mapaItens = new Map();
                 const novosErros = [];
+                let pedirIsolamentoGenerico = false;
 
                 linhas.forEach((linha) => {
                     const l = linha.trim();
                     if (!l) return;
                     let identificado = false;
+                    
+                    // Extrai a quantidade do início da linha (ex: "2 panquecas" -> 2)
+                    let qtdLinha = 1;
+                    const matchQtdInicio = l.match(/^(\d+)/);
+                    if (matchQtdInicio) qtdLinha = parseInt(matchQtdInicio[1]);
 
                     // 1. COBRE
                     for (const bitola in COBRE_PESO) {
-                        if (l.includes(bitola) && (l.includes('cano') || l.includes('cobre') || l.includes('panq'))) {
-                            const mMatch = l.match(/(\d+)\s*(m|metro|metros|panq|panc|panqueca)/);
+                        if (l.includes(bitola) && (l.includes('cano') || l.includes('cobre') || l.includes('panq') || l.includes('panc'))) {
+                            const mMatch = l.match(/(\d+)\s*(m|metro|metros)/);
                             const panMatch = l.match(/(panq|panc|panqueca)/);
-                            let metros = mMatch ? parseInt(mMatch[1]) : 0;
-                            if (panMatch) metros = (metros || 1) * 15;
+                            
+                            let metros = 0;
+                            if (mMatch) metros = parseInt(mMatch[1]);
+                            else if (panMatch) metros = qtdLinha * 15;
+                            else metros = qtdLinha;
+
                             if (metros > 0) {
                                 const chave = `cobre-${bitola}`;
                                 const existente = mapaItens.get(chave);
@@ -100,10 +111,10 @@
 
                     // 2. ISOLANTES
                     if (!identificado) {
+                        let achouBitola = false;
                         for (const bitola in ISOLAMENTO_PRECO) {
-                            if (l.includes(bitola) && (l.includes('tubo') || l.includes('esponjoso') || l.includes('blindado') || l.includes('isolante'))) {
-                                const qMatch = l.match(/(\d+)/);
-                                const qtd = qMatch ? parseInt(qMatch[1]) : 1;
+                            if (l.includes(bitola) && (l.includes('tubo') || l.includes('esponjoso') || l.includes('blindado') || l.includes('isolante') || l.includes('isolamento'))) {
+                                const qtd = l.match(/(\d+)\s*(m|metro|metros)/) ? parseInt(l.match(/(\d+)\s*(m|metro|metros)/)[1]) : qtdLinha;
                                 const chave = `iso-${bitola}`;
                                 const existente = mapaItens.get(chave);
                                 mapaItens.set(chave, {
@@ -112,8 +123,15 @@
                                     valorUnit: ISOLAMENTO_PRECO[bitola],
                                     tipo: 'iso'
                                 });
+                                achouBitola = true;
                                 identificado = true; break;
                             }
+                        }
+                        
+                        // Isolamento generico (sem bitola)
+                        if (!achouBitola && (l.includes('isolamento') || (l.includes('isolante') && !l.includes('fita')))) {
+                            pedirIsolamentoGenerico = true;
+                            identificado = true;
                         }
                     }
 
@@ -123,8 +141,8 @@
                             const bNorm = bitola.replace(',', '.');
                             const bEsp = bNorm.replace('x', 'x ');
                             if (l.includes(bNorm) || l.includes(bEsp) || l.includes(bitola)) {
-                                const qMatch = l.match(/(\d+)/);
-                                const qtd = qMatch ? parseInt(qMatch[1]) : 1;
+                                const mMatch = l.match(/(\d+)\s*(m|metro|metros)/);
+                                const qtd = mMatch ? parseInt(mMatch[1]) : qtdLinha;
                                 const chave = `cabo-${bitola}`;
                                 const existente = mapaItens.get(chave);
                                 mapaItens.set(chave, {
@@ -138,25 +156,84 @@
                         }
                     }
 
-                    // 4. FITAS, SUPORTES, CAIXAS (Lógica similar omitida para brevidade, mas incluída no processamento)
+                    // 4. SUPORTES E CAIXAS
+                    if (!identificado && l.includes('suporte')) {
+                        let chaveSup = null;
+                        for (const key in SUPORTES) {
+                            if (l.includes(key) || (key==='30' && l.match(/\b30\b/))) {
+                                chaveSup = key;
+                                break;
+                            }
+                        }
+                        if (chaveSup) {
+                            const chave = `sup-${chaveSup}`;
+                            const existente = mapaItens.get(chave);
+                            mapaItens.set(chave, {
+                                nome: SUPORTES[chaveSup].n,
+                                qtdNumerica: (existente?.qtdNumerica || 0) + qtdLinha,
+                                valorUnit: SUPORTES[chaveSup].p,
+                                tipo: 'suporte'
+                            });
+                            identificado = true;
+                        }
+                    }
+
+                    if (!identificado && l.includes('caixa')) {
+                        let chaveCx = null;
+                        for (const key in CAIXAS) {
+                            if (l.includes(key)) {
+                                chaveCx = key;
+                                break;
+                            }
+                        }
+                        if (chaveCx) {
+                            const chave = `cx-${chaveCx}`;
+                            const existente = mapaItens.get(chave);
+                            mapaItens.set(chave, {
+                                nome: CAIXAS[chaveCx].n,
+                                qtdNumerica: (existente?.qtdNumerica || 0) + qtdLinha,
+                                valorUnit: CAIXAS[chaveCx].p,
+                                tipo: 'caixa'
+                            });
+                            identificado = true;
+                        }
+                    }
+
+                    // 5. FITAS
                     if (!identificado) {
                         if (l.includes('pvc')) {
-                            const q = (l.match(/(\d+)/) || [0, 1])[1];
                             const chave = 'fita-pvc';
                             const ex = mapaItens.get(chave);
-                            mapaItens.set(chave, { nome: FITAS.pvc.n, qtdNumerica: (ex?.qtdNumerica || 0) + Number(q), valorUnit: FITAS.pvc.p, tipo: 'fita' });
+                            mapaItens.set(chave, { nome: FITAS.pvc.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdLinha, valorUnit: FITAS.pvc.p, tipo: 'fita' });
                             identificado = true;
-                        } else if (l.includes('isolante') && !l.includes('tubo')) {
-                            const q = (l.match(/(\d+)/) || [0, 1])[1];
+                        } else if ((l.includes('isolante') || l.includes('fita iso')) && !l.includes('tubo') && !l.includes('isolamento')) {
                             const chave = 'fita-iso';
                             const ex = mapaItens.get(chave);
-                            mapaItens.set(chave, { nome: FITAS.iso.n, qtdNumerica: (ex?.qtdNumerica || 0) + Number(q), valorUnit: FITAS.iso.p, tipo: 'fita' });
+                            mapaItens.set(chave, { nome: FITAS.iso.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdLinha, valorUnit: FITAS.iso.p, tipo: 'fita' });
                             identificado = true;
                         }
                     }
 
                     if (!identificado) novosErros.push(linha);
                 });
+
+                // Adiciona isolamento para tudo que for cobre se foi pedido genericamente
+                if (pedirIsolamentoGenerico) {
+                    mapaItens.forEach((item, chave) => {
+                        if (item.tipo === 'cobre') {
+                            const bitola = item.bitola;
+                            const metros = item.qtdNumerica;
+                            const chaveIso = `iso-${bitola}`;
+                            const existente = mapaItens.get(chaveIso);
+                            mapaItens.set(chaveIso, {
+                                nome: `TUBO BLINDADO BRANCO ${bitola}`,
+                                qtdNumerica: (existente?.qtdNumerica || 0) + metros,
+                                valorUnit: ISOLAMENTO_PRECO[bitola],
+                                tipo: 'iso'
+                            });
+                        }
+                    });
+                }
 
                 const itensFinais = [];
                 mapaItens.forEach((item, chave) => {
