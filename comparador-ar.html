@@ -253,6 +253,51 @@
       color: #000 !important;
     }
 
+    .badge-inline {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      vertical-align: middle;
+      opacity: 0.8;
+      margin-left: 8px;
+    }
+
+    .badge-inline.dufrio {
+      background: #0056b3;
+      color: white;
+    }
+
+    .badge-inline.leveros {
+      background: #009038;
+      color: white;
+    }
+
+    .badge-inline.centralar {
+      background: #005ca8;
+      color: white;
+    }
+
+    .fake-textarea {
+      width: 100%;
+      height: 350px;
+      background: #0A0A0A;
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 20px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 14px;
+      margin-bottom: 24px;
+      overflow-y: auto;
+      line-height: 1.5;
+      text-align: left;
+      white-space: pre-wrap;
+    }
+
     @media (max-width: 768px) {
       body {
         padding: 24px 16px;
@@ -320,14 +365,15 @@
       <h2>Comparador Ao Vivo (Da Extensão)</h2>
       <div class="sub-head">A caixa atualiza sozinha quando você joga os itens da extensão pra cá!</div>
 
-      <textarea id="caixa-comparador" readonly placeholder="Nenhum produto enviado pela extensão ainda..."
-        style="width: 100%; height: 350px; background: #0A0A0A; color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; font-family: 'Montserrat', sans-serif; font-size: 14px; margin-bottom: 24px; resize: vertical; line-height: 1.5; outline: none;"></textarea>
+      <div id="caixa-comparador" class="fake-textarea">Nenhum produto enviado pela extensão ainda...</div>
 
       <div class="compare-actions">
         <button id="btn-organizar" onclick="organizarTudo()"
           style="border-color: var(--green); color: var(--green);">Organizar Todos pelo Menor Preço 🏆</button>
         <button onclick="copiarCaixa(this)"
           style="background: var(--green); color: #000; border-color: var(--green);">Copiar Texto da Caixa 📋</button>
+        <button onclick="limparComparador()" style="border-color: #ff4444; color: #ff4444;">Limpar Lojas Salvas
+          🗑️</button>
       </div>
     </div>
   </div>
@@ -530,31 +576,56 @@
       return Infinity;
     }
 
+    // Variável global para guardar o conteúdo de texto limpo para o botão Copiar
+    let clipboardTextClean = "";
+
+    function limparComparador() {
+      if (confirm("Tem certeza que quer limpar todos os dados salvos da extensão no Comparador?")) {
+        // Remove do local storage da extensao mandando a mensagem indiretamente via nova action
+        // Mas como nós nao temos como escrever via bridge direto (bridge nao tem permissions),
+        // Pelo menos limpamos o state atual
+        dadosExtensaoBrutos = {};
+        isSorted = false;
+        renderizarCaixa();
+        alert("Memória limpa! Agora se você for na loja e clicar Jogar p/ Comparador ele começará do zero.");
+      }
+    }
+
     function renderizarCaixa() {
-      const textarea = document.getElementById("caixa-comparador");
+      const divCaixa = document.getElementById("caixa-comparador");
       const conteudos = Object.values(dadosExtensaoBrutos);
 
+      // Remove a metadata_title da array de conteudos
+      let dataToProcess = { ...dadosExtensaoBrutos };
+      delete dataToProcess.metadata_title;
+
       let temProduto = false;
-      conteudos.forEach(list => { if (list.length > 0) temProduto = true; });
+      Object.values(dataToProcess).forEach(list => { if (Array.isArray(list) && list.length > 0) temProduto = true; });
 
       if (!temProduto) {
-        textarea.value = "";
+        divCaixa.innerHTML = '<span style="color: #666;">Nenhum produto enviado pela extensão ainda...</span>';
+        clipboardTextClean = "";
         return;
       }
+
+      let htmlOut = "";
+      let plainTextOut = "";
 
       if (isSorted) {
         // == MODO: LISTA ÚNICA ORGANIZADA ==
         let unifiedAndSortedList = [];
-        for (const [storeName, products] of Object.entries(dadosExtensaoBrutos)) {
-          products.forEach(p => {
-            unifiedAndSortedList.push({
-              store: storeName,
-              title: p.title,
-              spot: p.spot,
-              install: p.install,
-              _parsedPrice: parseSpotPrice(p.spot)
+        for (const [storeName, products] of Object.entries(dataToProcess)) {
+          if (Array.isArray(products)) {
+            products.forEach(p => {
+              unifiedAndSortedList.push({
+                store: storeName,
+                title: p.title,
+                spot: p.spot,
+                install: p.install,
+                _parsedPrice: parseSpotPrice(p.spot)
+              });
             });
-          });
+          }
         }
 
         unifiedAndSortedList.sort((a, b) => a._parsedPrice - b._parsedPrice);
@@ -562,29 +633,66 @@
         const titleStr = generateSmartTitle(unifiedAndSortedList);
         const titleText = titleStr.split('\n').map(l => `*${l}*`).join('\n');
 
-        const listText = unifiedAndSortedList.map(p => {
-          const formatBase = formatProductText(p.title, p.spot, p.install);
-          return `🏬 *Vendido por: ${p.store.toUpperCase()}*\n${formatBase}`;
-        }).join('\n\n_____\n\n');
+        htmlOut += `<strong>${titleText}</strong>\n\n=====================\n\n`;
+        plainTextOut += `${titleText}\n\n=====================\n\n`;
 
-        textarea.value = `${titleText}\n\n=====================\n\n${listText}`;
+        const listItemsHtml = unifiedAndSortedList.map(p => {
+          let badgeClass = "dufrio";
+          if (p.store.toLowerCase().includes('leveros')) badgeClass = "leveros";
+          if (p.store.toLowerCase().includes('central ar')) badgeClass = "centralar";
+
+          let emojiCycle = "❄️";
+          const tl = p.title.toLowerCase();
+          if (tl.includes('quente/frio') || tl.includes('quente e frio') || tl.includes('q/f')) emojiCycle = "🔥❄️";
+
+          // HTML version (com a badge discreta injetada na linha da parcela)
+          const htmlItem = `${emojiCycle} ${p.title}\n💰 <span style="color: var(--green); font-weight: bold;">${p.spot}</span>\n💳 <span style="color: #bbb;">${p.install}</span><span class="badge-inline ${badgeClass}">${p.store}</span>`;
+          return htmlItem;
+        });
+
+        htmlOut += listItemsHtml.join('\n\n<span style="color:#555">_____</span>\n\n');
+
+        // Texto plano limpíssimo sem as Lojas
+        const listItemsPlain = unifiedAndSortedList.map(p => formatProductText(p.title, p.spot, p.install));
+        plainTextOut += listItemsPlain.join('\n\n_____\n\n');
+
       } else {
         // == MODO: LISTAS SEPARADAS POR LOJA (Como chegaram) ==
-        let blocos = [];
+        let blocosHtml = [];
+        let blocosPlain = [];
 
-        for (const [storeName, products] of Object.entries(dadosExtensaoBrutos)) {
-          if (products.length === 0) continue;
+        for (const [storeName, products] of Object.entries(dataToProcess)) {
+          if (!Array.isArray(products) || products.length === 0) continue;
+
+          let badgeClass = "dufrio";
+          if (storeName.toLowerCase().includes('leveros')) badgeClass = "leveros";
+          if (storeName.toLowerCase().includes('central ar')) badgeClass = "centralar";
 
           const titleStr = generateSmartTitle(products);
           const titleText = titleStr.split('\n').map(l => `*${l}*`).join('\n');
-          const listText = products.map(p => formatProductText(p.title, p.spot, p.install)).join('\n\n_____\n\n');
 
-          const bloco = `📦 *${storeName.toUpperCase()}*\n${titleText}\n\n${listText}`;
-          blocos.push(bloco);
+          // HTML version
+          const listItemsHtml = products.map(p => {
+            let emojiCycle = "❄️";
+            const tl = p.title.toLowerCase();
+            if (tl.includes('quente/frio') || tl.includes('quente e frio') || tl.includes('q/f')) emojiCycle = "🔥❄️";
+            return `${emojiCycle} ${p.title}\n💰 <span style="color: var(--green); font-weight: bold;">${p.spot}</span>\n💳 <span style="color: #bbb;">${p.install}</span><span class="badge-inline ${badgeClass}">${storeName}</span>`;
+          });
+          const blocoHtml = `📦 <strong>${storeName.toUpperCase()}</strong>\n${titleText}\n\n${listItemsHtml.join('\n\n<span style="color:#555">_____</span>\n\n')}`;
+          blocosHtml.push(blocoHtml);
+
+          // Plain string version (Sem loja)
+          const listItemsPlain = products.map(p => formatProductText(p.title, p.spot, p.install));
+          const blocoPlain = `${titleText}\n\n${listItemsPlain.join('\n\n_____\n\n')}`;
+          blocosPlain.push(blocoPlain);
         }
 
-        textarea.value = blocos.join('\n\n\n=====================\n\n\n');
+        htmlOut = blocosHtml.join('\n\n\n=====================\n\n\n');
+        plainTextOut = blocosPlain.join('\n\n\n=====================\n\n\n');
       }
+
+      divCaixa.innerHTML = htmlOut;
+      clipboardTextClean = plainTextOut;
     }
 
     function organizarTudo() {
@@ -597,13 +705,13 @@
     }
 
     function copiarCaixa(btnElement) {
-      const textarea = document.getElementById("caixa-comparador");
-      if (textarea.value.trim() === "") {
+      if (!clipboardTextClean || clipboardTextClean.trim() === "") {
         alert("A caixa está vazia!");
         return;
       }
 
-      navigator.clipboard.writeText(textarea.value).then(() => {
+      // COPIA O TEXTO LIMPO PRE-CALCULADO
+      navigator.clipboard.writeText(clipboardTextClean).then(() => {
         const old = btnElement.innerText;
         btnElement.innerText = "Texto Copiado! ✔️";
         setTimeout(() => btnElement.innerText = old, 3000);
