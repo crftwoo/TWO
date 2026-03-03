@@ -30,7 +30,7 @@ window.addEventListener("message", (event) => {
         chrome.runtime.sendMessage({
             action: "pullTabs"
         }, (response) => {
-            window.postMessage({ type: "TWO_PULL_TABS_SUCCESS" }, "*");
+            window.postMessage({ type: "TWO_PULL_TABS_SUCCESS", response: response }, "*");
         });
         return;
     }

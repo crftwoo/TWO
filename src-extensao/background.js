@@ -29,15 +29,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             let collectedData = {};
 
             const finalize = () => {
+                const storesFound = Object.keys(collectedData).length;
+                if (storesFound === 0) {
+                    sendResponse({ success: false, message: "Nenhum produto nas Lojas Abertas" });
+                    return;
+                }
+
                 chrome.storage.local.get(['comparador_data'], (result) => {
                     const data = result.comparador_data || {};
-                    // Sobrescreve apenas as lojas ativas onde encontramos lista para isolar
                     for (const [store, storeData] of Object.entries(collectedData)) {
                         data[store] = storeData.list;
                         if (storeData.title) data.metadata_title = storeData.title;
                     }
                     chrome.storage.local.set({ comparador_data: data }, () => {
-                        sendResponse({ success: true });
+                        sendResponse({ success: true, count: storesFound });
                     });
                 });
             };

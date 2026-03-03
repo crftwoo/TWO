@@ -406,7 +406,7 @@
         <button id="btn-organizar" onclick="organizarTudo()"
           style="border-color: var(--green); color: var(--green);">Organizar Todos pelo Menor Preço 🏆</button>
         <button id="btn-puxar-abas" onclick="puxarAbasAbertas(this)"
-          style="border-color: #007bff; color: #007bff;">Puxar Lojas Abertas 🌐</button>
+          style="border-color: #007bff; color: #007bff;">Puxar Caixas da Extensão 🔄</button>
         <button onclick="copiarCaixa(this)"
           style="background: var(--green); color: #000; border-color: var(--green);">Copiar Texto da Caixa 📋</button>
         <button onclick="limparComparador()" style="border-color: #ff4444; color: #ff4444; margin-left: auto;">Limpar
@@ -773,10 +773,10 @@
 
     function puxarAbasAbertas(btnElement) {
       window.postMessage({ type: "TWO_PULL_TABS" }, "*");
-      const old = btnElement.innerText;
-      btnElement.innerText = "Buscando nas abas... ⏳";
+      const old = "Puxar Caixas da Extensão 🔄";
+      btnElement.innerText = "Puxando das Caixas... ⏳";
       setTimeout(() => {
-        if (btnElement.innerText === "Buscando nas abas... ⏳") {
+        if (btnElement.innerText === "Puxando das Caixas... ⏳") {
           btnElement.innerText = old;
         }
       }, 3000);
@@ -787,8 +787,13 @@
       if (event.source === window && event.data && event.data.type === "TWO_PULL_TABS_SUCCESS") {
         const btnElement = document.getElementById("btn-puxar-abas");
         if (btnElement) {
-          btnElement.innerText = "Sincronizado! ✔️";
-          setTimeout(() => btnElement.innerText = "Puxar Lojas Abertas 🌐", 3000);
+          const response = event.data.response;
+          if (response && response.success) {
+            btnElement.innerText = "Encontradas " + response.count + " Lojas ✔️";
+          } else {
+            btnElement.innerText = "Nenhuma caixa aberta! ❌";
+          }
+          setTimeout(() => btnElement.innerText = "Puxar Caixas da Extensão 🔄", 3000);
         }
       }
     });
