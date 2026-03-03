@@ -26,6 +26,15 @@ window.addEventListener("message", (event) => {
         return;
     }
 
+    if (event.data.type === "TWO_PULL_TABS") {
+        chrome.runtime.sendMessage({
+            action: "pullTabs"
+        }, (response) => {
+            window.postMessage({ type: "TWO_PULL_TABS_SUCCESS" }, "*");
+        });
+        return;
+    }
+
     if (event.data.type === "TWO_EXTENSION_REQUEST") {
         // Forward the request to the extension's background script
         chrome.runtime.sendMessage({

@@ -350,15 +350,23 @@
     <div class="sub-head">Buscador de preços de ar condicionado.</div>
 
     <h2>Selecione o Tipo</h2>
-    <div id="tipos" class="section"></div>
+    <div class="cards" id="tipos">
+      <div class="card" onclick="selecionarTipo('Hiwall')">Hiwall</div>
+      <div class="card" onclick="selecionarTipo('Piso Teto')">Piso Teto</div>
+      <div class="card" onclick="selecionarTipo('Cassete')">Cassete</div>
+      <div class="card" onclick="selecionarTipo('de Janela')">de Janela</div>
+      <div class="card" onclick="selecionarTipo('Portátil')">Portátil</div>
+      <div class="card" onclick="selecionarTipo('Multi Split')">Multi Split</div>
+      <div class="card" onclick="selecionarTipo('Ar Condicionado')">Outros</div>
+    </div>
 
-    <h2>Selecione os BTUs</h2>
-    <div id="btus" class="section"></div>
+    <h2 id="titulo-btus">Selecione os BTUs</h2>
+    <div class="cards" id="btus"></div>
 
-    <h2>Selecione o Ciclo</h2>
-    <div id="ciclos" class="section"></div>
+    <h2 id="titulo-ciclos">Selecione o Ciclo</h2>
+    <div class="cards" id="ciclos"></div>
 
-    <h2>Resultados</h2>
+    <h2 id="titulo-resultados">Resultados</h2>
     <div id="resultados"></div>
 
     <div class="compare-section" id="compare-section">
@@ -370,6 +378,8 @@
       <div class="compare-actions">
         <button id="btn-organizar" onclick="organizarTudo()"
           style="border-color: var(--green); color: var(--green);">Organizar Todos pelo Menor Preço 🏆</button>
+        <button id="btn-puxar-abas" onclick="puxarAbasAbertas(this)"
+          style="border-color: #007bff; color: #007bff;">Puxar Lojas Abertas 🌐</button>
         <button onclick="copiarCaixa(this)"
           style="background: var(--green); color: #000; border-color: var(--green);">Copiar Texto da Caixa 📋</button>
         <button onclick="limparComparador()" style="border-color: #ff4444; color: #ff4444; margin-left: auto;">Limpar
@@ -380,7 +390,7 @@
 
   <script>
     let dados = [], tipoSelecionado = null, btusSelecionado = null, cicloSelecionado = null;
-    let ativoTipo = null, ativoBtu = null, ativoCiclo = null;
+    // let ativoTipo = null, ativoBtu = null, ativoCiclo = null; // These are no longer needed with the new selection logic
 
     const imagens = {
       "Hiwall": "img/hi_wall.png",
@@ -390,76 +400,87 @@
     };
 
     fetch("https://opensheet.elk.sh/1LLVFTzxoSakgqnjS_ws7GgYNKdEqP26H0Z7Fe5DEmcc/Página1")
-      .then(r => r.json()).then(j => { dados = j; gerarTipos(); });
+      .then(r => r.json()).then(j => { dados = j; /* gerarTipos(); */ }); // gerarTipos is replaced by static HTML and new functions
 
     function scrollPara(id) {
       document.getElementById(id).scrollIntoView({ behavior: "smooth" });
     }
 
-    function gerarTipos() {
-      const tipos = [...new Set(dados.map(i => i.Tipo))];
-      const div = document.getElementById("tipos");
-      div.innerHTML = "";
-      tipos.forEach(t => {
-        const b = document.createElement("button");
-        b.className = "tipo-btn";
-        b.innerHTML = `<div class="img-wrapper"><img src="${imagens[t] || ''}"></div><span>${t}</span>`;
-        b.onclick = () => {
-          if (ativoTipo) ativoTipo.classList.remove("selecionado");
-          b.classList.add("selecionado");
-          ativoTipo = b;
-          tipoSelecionado = t;
-          document.getElementById("btus").innerHTML = "";
-          document.getElementById("ciclos").innerHTML = "";
-          document.getElementById("resultados").innerHTML = "";
-          gerarBTUs();
-          scrollPara("btus");
-        };
-        div.appendChild(b);
-      });
+    // New selection functions
+    function selecionarTipo(tipo) {
+      tipoSelecionado = tipo;
+      document.querySelectorAll('#tipos .card').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      gerarBTUs(); // Call to generate BTUs based on selected type
+      atualizarResultados();
+
+      setTimeout(() => {
+        const nextTarget = document.getElementById('titulo-btus');
+        if (nextTarget) nextTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
     }
 
     function gerarBTUs() {
       const btus = [...new Set(dados.filter(i => i.Tipo === tipoSelecionado).map(i => i.BTUs))];
       const div = document.getElementById("btus");
-      div.innerHTML = "";
+      div.innerHTML = ""; // Clear previous BTUs
       btus.forEach(b => {
-        const bt = document.createElement("button");
-        bt.textContent = b + " BTUs";
-        bt.onclick = () => {
-          if (ativoBtu) ativoBtu.classList.remove("selecionado");
-          bt.classList.add("selecionado");
-          ativoBtu = bt;
-          btusSelecionado = b;
-          document.getElementById("ciclos").innerHTML = "";
-          document.getElementById("resultados").innerHTML = "";
-          gerarCiclos();
-          scrollPara("ciclos");
-        };
-        div.appendChild(bt);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.textContent = b + " BTUs";
+        card.onclick = (event) => selecionarBtus(b, event);
+        div.appendChild(card);
       });
+      // Clear ciclos and results when BTUs are regenerated
+      document.getElementById("ciclos").innerHTML = "";
+      document.getElementById("resultados").innerHTML = "";
+    }
+
+    function selecionarBtus(btus, event) {
+      btusSelecionado = btus;
+      document.querySelectorAll('#btus .card').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      gerarCiclos(); // Call to generate Ciclos based on selected BTUs
+      atualizarResultados();
+
+      setTimeout(() => {
+        const nextTarget = document.getElementById('titulo-ciclos');
+        if (nextTarget) nextTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
     }
 
     function gerarCiclos() {
       const ciclos = [...new Set(dados.filter(i => i.Tipo === tipoSelecionado && i.BTUs == btusSelecionado).map(i => i.Ciclo))];
       const div = document.getElementById("ciclos");
-      div.innerHTML = "";
+      div.innerHTML = ""; // Clear previous Ciclos
       ciclos.forEach(c => {
-        const bt = document.createElement("button");
-        bt.textContent = c;
-        bt.onclick = () => {
-          if (ativoCiclo) ativoCiclo.classList.remove("selecionado");
-          bt.classList.add("selecionado");
-          ativoCiclo = bt;
-          cicloSelecionado = c;
-          gerarResultados();
-          scrollPara("resultados");
-        };
-        div.appendChild(bt);
+        const card = document.createElement("div");
+        card.className = "card";
+        card.textContent = c;
+        card.onclick = (event) => selecionarCiclo(c, event);
+        div.appendChild(card);
       });
+      // Clear results when Ciclos are regenerated
+      document.getElementById("resultados").innerHTML = "";
     }
 
-    function gerarResultados() {
+    function selecionarCiclo(ciclo, event) {
+      cicloSelecionado = ciclo;
+      document.querySelectorAll('#ciclos .card').forEach(c => c.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      atualizarResultados();
+
+      setTimeout(() => {
+        const nextTarget = document.getElementById('titulo-resultados');
+        if (nextTarget) nextTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 150);
+    }
+
+    function atualizarResultados() {
+      if (!tipoSelecionado || !btusSelecionado || !cicloSelecionado) {
+        document.getElementById("resultados").innerHTML = ""; // Clear results if not all selected
+        return;
+      }
       const res = dados.filter(i => i.Tipo === tipoSelecionado && i.BTUs == btusSelecionado && i.Ciclo === cicloSelecionado);
       const div = document.getElementById("resultados");
       div.innerHTML = "";
@@ -716,6 +737,28 @@
       isSorted = true;
       renderizarCaixa();
     }
+
+    function puxarAbasAbertas(btnElement) {
+      window.postMessage({ type: "TWO_PULL_TABS" }, "*");
+      const old = btnElement.innerText;
+      btnElement.innerText = "Buscando nas abas... ⏳";
+      setTimeout(() => {
+        if (btnElement.innerText === "Buscando nas abas... ⏳") {
+          btnElement.innerText = old;
+        }
+      }, 3000);
+    }
+
+    window.addEventListener("message", (event) => {
+      // Intercepta a resposta de sucesso do pull tabs apenas para UI feedbak
+      if (event.source === window && event.data && event.data.type === "TWO_PULL_TABS_SUCCESS") {
+        const btnElement = document.getElementById("btn-puxar-abas");
+        if (btnElement) {
+          btnElement.innerText = "Sincronizado! ✔️";
+          setTimeout(() => btnElement.innerText = "Puxar Lojas Abertas 🌐", 3000);
+        }
+      }
+    });
 
     function copiarCaixa(btnElement) {
       if (!clipboardTextClean || clipboardTextClean.trim() === "") {

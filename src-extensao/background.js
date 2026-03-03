@@ -12,6 +12,52 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true; // Keep the message channel open for the async response
     }
 
+    if (request.action === "pullTabs") {
+        chrome.tabs.query({
+            url: [
+                "*://*.dufrio.com.br/*",
+                "*://*.leveros.com.br/*",
+                "*://*.centralar.com.br/*"
+            ]
+        }, (tabs) => {
+            let responsesNeeded = tabs.length;
+            if (responsesNeeded === 0) {
+                sendResponse({ success: true, message: "No tabs found" });
+                return;
+            }
+
+            let collectedData = {};
+
+            const finalize = () => {
+                chrome.storage.local.get(['comparador_data'], (result) => {
+                    const data = result.comparador_data || {};
+                    // Sobrescreve apenas as lojas ativas onde encontramos lista para isolar
+                    for (const [store, storeData] of Object.entries(collectedData)) {
+                        data[store] = storeData.list;
+                        if (storeData.title) data.metadata_title = storeData.title;
+                    }
+                    chrome.storage.local.set({ comparador_data: data }, () => {
+                        sendResponse({ success: true });
+                    });
+                });
+            };
+
+            tabs.forEach(tab => {
+                chrome.tabs.sendMessage(tab.id, { action: "request_current_list" }, (response) => {
+                    if (!chrome.runtime.lastError && response && response.store && response.list && response.list.length > 0) {
+                        collectedData[response.store] = {
+                            list: response.list,
+                            title: response.title
+                        };
+                    }
+                    responsesNeeded--;
+                    if (responsesNeeded === 0) finalize();
+                });
+            });
+        });
+        return true; // Keep message channel open for async response
+    }
+
     if (request.action === "fetchImageBackground" && request.url) {
         fetch(request.url)
             .then(res => res.blob())

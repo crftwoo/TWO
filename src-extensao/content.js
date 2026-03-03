@@ -751,6 +751,26 @@
         });
     }
 
+    // Ext listener para quando o comparador pedir um "Puxar Abas Abertas"
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === "request_current_list") {
+            if (typeof currentProductsList !== 'undefined' && currentProductsList.length > 0) {
+                const host = window.location.host;
+                let currentStore = 'Dufrio';
+                if (host.includes('leveros.com.br')) currentStore = 'Leveros';
+                else if (host.includes('centralar.com.br')) currentStore = 'Central Ar';
+
+                sendResponse({
+                    store: currentStore,
+                    list: currentProductsList,
+                    title: typeof generateSmartTitle === 'function' ? generateSmartTitle(currentProductsList) : null
+                });
+            } else {
+                sendResponse(null);
+            }
+        }
+    });
+
     // Dispara a extração assim que o DOM estiver pronto ou interativo
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
         init();
