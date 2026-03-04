@@ -1293,11 +1293,6 @@
         divCaixa.innerHTML = htmlOut;
         clipboardTextClean = plainTextOut;
 
-        // Se a grade estiver aberta, atualiza ela automaticamente ao filtrar
-        if (document.getElementById('visual-cards-container').style.display === 'grid') {
-          gerarCardsVisuais();
-        }
-
       } catch (e) {
         divCaixa.innerHTML = '<span style="color:red">Oops, houve um erro ao processar: ' + e.message + '</span>';
         console.error("Renderer Exception:", e);
@@ -1451,9 +1446,7 @@
       });
 
       // Rola a pagina para os cards
-      setTimeout(() => {
-        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
+
     }
 
     function puxarAbasAbertas(btnElement) {
