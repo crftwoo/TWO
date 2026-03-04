@@ -598,6 +598,7 @@
     };
 
     function identificarQualidadeDaMarca(titulo) {
+      if (!titulo) return 'outra';
       const lowerT = titulo.toLowerCase();
       for (const [q, marcas] of Object.entries(QUALITY_BRANDS)) {
         for (const m of marcas) {
@@ -762,6 +763,7 @@
 
     // Helpers para formatar (idênticos à extensão)
     function extractProductInfo(titleStr) {
+      if (!titleStr) return { btuVal: null, isQF: false, isSF: false, type: 'Ar Condicionado' };
       const titleLower = titleStr.toLowerCase();
       let btuVal = null;
       const btuMatch = titleLower.match(/(\d{1,2}\.?\d{3})\s*btus?/);
@@ -823,6 +825,7 @@
     }
 
     function formatProductText(title, spot, install) {
+      if (!title) return "";
       let emojiCycle = "❄️";
       const titleLower = title.toLowerCase();
       if (titleLower.includes('quente/frio') || titleLower.includes('quente e frio') || titleLower.includes('quente/ frio') || titleLower.includes('quente / frio') || titleLower.includes('quente frio') || titleLower.includes('q/f')) {
@@ -863,6 +866,7 @@
     }
 
     function produtoPassaNoFiltro(p) {
+      if (!p || !p.title) return false;
       const qualidade = identificarQualidadeDaMarca(p.title);
       if (!ACTIVE_FILTERS.qualidade[qualidade]) return false;
 
@@ -908,9 +912,9 @@
             products.forEach(p => {
               const tempP = {
                 store: storeName,
-                title: p.title,
-                spot: p.spot,
-                install: p.install,
+                title: p.title || "",
+                spot: p.spot || "",
+                install: p.install || "",
                 _parsedPrice: parseSpotPrice(p.spot)
               };
               if (produtoPassaNoFiltro(tempP)) {
