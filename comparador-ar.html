@@ -205,7 +205,6 @@
     .compare-section {
       margin-top: 60px;
       padding-top: 40px;
-      border-top: 2px dashed rgba(255, 255, 255, 0.1);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -312,12 +311,13 @@
     .filter-section {
       width: 100%;
       max-width: 800px;
-      margin-bottom: 24px;
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      margin-bottom: 32px;
+      padding: 24px;
+      background: linear-gradient(145deg, #111111, #0a0a0a);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      border-radius: 16px;
       text-align: left;
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.02), 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
     .filter-section p {
@@ -362,11 +362,11 @@
     }
 
     .filter-badge.active {
-      color: #000;
-      background: #e5e5e5;
+      color: #fff;
+      background: #2a2a2a;
       /* Cor clara padrão para marcas e lojas genéricas */
-      border-color: transparent;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      border-color: #333;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       opacity: 1;
       filter: grayscale(0%);
     }
@@ -432,19 +432,21 @@
 
     .fake-textarea {
       width: 100%;
-      height: 350px;
-      background: #0A0A0A;
-      color: #fff;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      max-width: 800px;
+      height: 300px;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 12px;
-      padding: 20px;
+      padding: 24px;
       font-family: 'Montserrat', sans-serif;
       font-size: 14px;
-      margin-bottom: 24px;
+      margin-bottom: 32px;
       overflow-y: auto;
-      line-height: 1.5;
+      line-height: 1.6;
       text-align: left;
       white-space: pre-wrap;
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
     }
 
     /* Cards Visuais do Comparador */
@@ -639,8 +641,7 @@
       <div id="ciclos" class="section" style="justify-content: center;"></div>
     </div>
 
-    <div class="form-step" id="step-resultados"
-      style="border-bottom: 2px dashed rgba(255,255,255,0.1); padding-bottom: 40px; margin-bottom: 40px; width: 100%;">
+    <div class="form-step" id="step-resultados" style="padding-bottom: 20px; width: 100%;">
       <h2 id="titulo-resultados">Resultados</h2>
       <div id="resultados"
         style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 800px;">
@@ -654,11 +655,14 @@
       <div id="caixa-comparador" class="fake-textarea">Nenhum produto enviado pela extensão ainda...</div>
 
       <div class="filter-section" id="filter-section" style="display: none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-          <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #fff;">Filtros de Lista</h3>
-          <button id="btn-toggle-all-filters" class="badge-inline"
-            style="background: var(--green); color: black; border: none; cursor: pointer; padding: 6px 12px; font-weight: bold;"
-            onclick="toggleAllFilters()">Desmarcar Todos</button>
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px;">
+          <h3
+            style="margin: 0; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff;">
+            Filtros de Tabela</h3>
+          <button id="btn-toggle-all-filters" class="tech-btn"
+            style="--btn-color: #71717a; padding: 6px 12px; font-size: 9px;" onclick="toggleAllFilters()">Desmarcar
+            Todos</button>
         </div>
 
         <p>Lojas Encontradas</p>
@@ -694,11 +698,11 @@
 
       <div class="compare-actions">
         <button id="btn-puxar-abas" class="tech-btn" onclick="puxarAbasAbertas(this)"
-          style="--btn-color: #007bff;">Puxar Caixas da Extensão 🔄</button>
+          style="--btn-color: #4b9ce3;">Puxar Caixas da Extensão 🔄</button>
         <button class="tech-btn solid" onclick="copiarCaixa(this)" style="--btn-color: var(--green);">Copiar Texto da
           Caixa 📋</button>
-        <button class="tech-btn" onclick="gerarCardsVisuais()"
-          style="--btn-color: #b08d57; border-color: #b08d57; color: #b08d57;">Gerar Cards Visuais 🖼️</button>
+        <button class="tech-btn" onclick="gerarCardsVisuais()" style="--btn-color: #b08d57;">Gerar Cards Visuais
+          🖼️</button>
       </div>
       <p id="product-counter" style="color: #666; font-size: 13px; margin-top: 10px;"></p>
 
