@@ -476,8 +476,8 @@
 
     .vc-img-box {
       width: 100%;
-      height: 200px;
-      /* Altura ajustada para caber a foto redondinha */
+      /* Altura definida pelo aspect-ratio para imagens de ar condicionado que geralmente sao 16:9 ou 4:3 largas */
+      aspect-ratio: 4 / 3;
       background: #fff;
       /* Fundo branco pra mesclar melhor com as fotos que originalmente tem fundo branco */
       display: flex;
@@ -492,7 +492,7 @@
       width: 100%;
       height: 100%;
       object-fit: contain;
-      /* Voltei pro contain para não cortar nada da imagem original, mas agora ela ocupa 100% da largura/altura do container branco que toca as bordas */
+      /* O contain com o aspect-ratio acima garante que a imagem preenche a largura e dita a naturalidade da caixa */
       transition: transform 0.2s ease;
     }
 
