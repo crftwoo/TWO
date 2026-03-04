@@ -425,6 +425,9 @@
 
     function abrirFerramenta(botao, f) {
       if (f.isDownload) {
+        const confirmar = confirm(`Deseja baixar o arquivo da ${f.nome}?`);
+        if (!confirmar) return;
+
         const link = document.createElement("a");
         link.href = f.arquivo;
         link.download = f.arquivo.split('/').pop();
