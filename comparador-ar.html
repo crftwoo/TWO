@@ -577,6 +577,11 @@
         <p>Marcas Identificadas</p>
         <div class="filter-badges" id="dynamic-brand-filters"></div>
 
+        <div id="dynamic-type-container" style="display: none;">
+          <p>Tipos Encontrados</p>
+          <div class="filter-badges" id="dynamic-type-filters"></div>
+        </div>
+
         <p>Ciclo</p>
         <div class="filter-badges" id="dynamic-cycle-filters">
           <div class="filter-badge active" data-filter="sf" onclick="toggleFilter('ciclo', 'sf', this)">❄️ Só Frio</div>
@@ -606,6 +611,7 @@
     let ACTIVE_FILTERS = {
       loja: {},
       marca: {},
+      tipo: {},
       ciclo: { sf: true, qf: true }
     };
     let allFiltersActive = true;
@@ -832,6 +838,7 @@
     function updateDynamicFilters(rawData) {
       let allStores = new Set();
       let allBrands = new Set();
+      let allTypes = new Set();
       let hasData = false;
 
       let dataToProcess = { ...rawData };
@@ -844,20 +851,25 @@
           products.forEach(p => {
             const brand = extractExplicitBrand(p.title);
             allBrands.add(brand);
+            const type = extractProductInfo(p.title).type;
+            if (type !== 'Ar Condicionado') allTypes.add(type);
           });
         }
       }
 
-      ACTIVE_FILTERS = { loja: {}, marca: {}, ciclo: { sf: true, qf: true } };
+      ACTIVE_FILTERS = { loja: {}, marca: {}, tipo: {}, ciclo: { sf: true, qf: true } };
       allFiltersActive = true;
       const btn = document.getElementById('btn-toggle-all-filters');
       if (btn) btn.innerText = "Desmarcar Todos";
 
       allStores.forEach(s => ACTIVE_FILTERS.loja[s] = true);
       allBrands.forEach(b => ACTIVE_FILTERS.marca[b] = true);
+      allTypes.forEach(t => ACTIVE_FILTERS.tipo[t] = true);
 
       const containerLoja = document.getElementById('dynamic-store-filters');
       const containerMarca = document.getElementById('dynamic-brand-filters');
+      const containerTipo = document.getElementById('dynamic-type-filters');
+      const containerTipoWrapper = document.getElementById('dynamic-type-container');
 
       if (containerLoja && containerMarca) {
         containerLoja.innerHTML = Array.from(allStores).map(s => `<div class="filter-badge active" data-filter="${s}" onclick="toggleFilter('loja', '${s}', this)">🏬 ${s}</div>`).join('');
@@ -866,6 +878,16 @@
           containerMarca.innerHTML = Array.from(allBrands).sort().map(b => `<div class="filter-badge active" data-filter="${b}" onclick="toggleFilter('marca', '${b}', this)">🏷️ ${b.charAt(0).toUpperCase() + b.slice(1)}</div>`).join('');
         } else {
           containerMarca.innerHTML = '';
+        }
+
+        if (containerTipo && containerTipoWrapper) {
+          if (allTypes.size >= 2) {
+            containerTipoWrapper.style.display = 'block';
+            containerTipo.innerHTML = Array.from(allTypes).sort().map(t => `<div class="filter-badge active" data-filter="${t}" onclick="toggleFilter('tipo', '${t}', this)">📦 ${t}</div>`).join('');
+          } else {
+            containerTipoWrapper.style.display = 'none';
+            containerTipo.innerHTML = '';
+          }
         }
 
         // Force Cycle badges to active visually since we reset the object to true
@@ -1012,6 +1034,11 @@
 
       const marca = extractExplicitBrand(p.title);
       if (!ACTIVE_FILTERS.marca[marca]) return false;
+
+      if (Object.keys(ACTIVE_FILTERS.tipo).length >= 2) {
+        const type = extractProductInfo(p.title).type;
+        if (type && ACTIVE_FILTERS.tipo[type] !== undefined && !ACTIVE_FILTERS.tipo[type]) return false;
+      }
 
       const tl = p.title.toLowerCase();
       let cicloType = 'sf'; // default Só Frio
