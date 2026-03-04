@@ -953,11 +953,10 @@
           const listItemsPlain = unifiedAndSortedList.map(p => formatProductText(p.title, p.spot, p.install));
           plainTextOut += listItemsPlain.join('\n\n_____\n\n');
 
-        }
-
-        if (isSorted && unifiedAndSortedList && unifiedAndSortedList.length === 0) {
-          htmlOut = '<span style="color:#666;">Nenhum produto atende aos filtros atuais...</span>';
-          plainTextOut = '';
+          if (unifiedAndSortedList.length === 0) {
+            htmlOut = '<span style="color:#666;">Nenhum produto atende aos filtros atuais...</span>';
+            plainTextOut = '';
+          }
         }
 
         divCaixa.innerHTML = htmlOut;
