@@ -523,13 +523,39 @@
         return titleLines.join('\n');
     }
 
+    // Brands considered Top Tier that deserve bold highlights in messages
+    const HYPER_BRANDS = ['daikin', 'fujitsu', 'hitachi', 'trane', 'lg', 'samsung', 'gree', 'carrier', 'midea', 'hisense'];
+
+    function boldPremiumBrand(title) {
+        if (!title) return title;
+        let formattedTitle = title;
+
+        for (const b of HYPER_BRANDS) {
+            // Usa regex com word boundaries se for LG, ou apenas ignore case
+            let regex;
+            if (b === 'lg') {
+                regex = new RegExp(`\\b(${b})\\b`, 'i');
+            } else {
+                regex = new RegExp(`(${b})`, 'i');
+            }
+
+            if (regex.test(formattedTitle)) {
+                // Envolve a marca com asteriscos *Marca* mantendo o texto original que deu match
+                formattedTitle = formattedTitle.replace(regex, '*$1*');
+                break; // Se achou uma marca principal, já destacou ela, não precisa buscar outras na mesma string
+            }
+        }
+        return formattedTitle;
+    }
+
     function formatProductText(title, spot, install) {
         let emojiCycle = "❄️"; // Default Só Frio
         const titleLower = title.toLowerCase();
         if (titleLower.includes('quente/frio') || titleLower.includes('quente e frio') || titleLower.includes('quente/ frio') || titleLower.includes('quente / frio') || titleLower.includes('quente frio') || titleLower.includes('q/f')) {
             emojiCycle = "🔥❄️";
         }
-        return `${emojiCycle} ${title}\n💰 ${spot}\n💳 ${install}`;
+        const boldedTitle = boldPremiumBrand(title);
+        return `${emojiCycle} ${boldedTitle}\n💰 ${spot}\n💳 ${install}`;
     }
 
     function parseSpotPrice(priceStr) {
