@@ -664,7 +664,15 @@
       div.innerHTML = "";
       btus.forEach(b => {
         const bt = document.createElement("button");
-        bt.textContent = Number(b).toLocaleString('pt-BR') + " BTUS";
+        let formattedBtu = b;
+        if (typeof b === 'string' && b.includes(' a ')) {
+          const parts = b.split(' a ');
+          formattedBtu = parts.map(p => Number(p).toLocaleString('pt-BR')).join(' a ');
+        } else {
+          formattedBtu = Number(b).toLocaleString('pt-BR');
+        }
+        bt.textContent = formattedBtu + " BTUS";
+
         bt.onclick = () => {
           if (ativoBtu) ativoBtu.classList.remove("selecionado");
           bt.classList.add("selecionado");
