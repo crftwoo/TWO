@@ -852,7 +852,8 @@
             const brand = extractExplicitBrand(p.title);
             allBrands.add(brand);
             const type = extractProductInfo(p.title).type;
-            if (type !== 'Ar Condicionado') allTypes.add(type);
+            const ALLOWED_TYPES = ['Hiwall', 'Piso Teto', 'Cassete'];
+            if (ALLOWED_TYPES.includes(type)) allTypes.add(type);
           });
         }
       }
