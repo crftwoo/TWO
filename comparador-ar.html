@@ -568,8 +568,6 @@
       </div>
 
       <div class="compare-actions">
-        <button id="btn-organizar" class="tech-btn" onclick="organizarTudo()"
-          style="--btn-color: var(--green);">Organizar Todos pelo Menor Preço 🏆</button>
         <button id="btn-puxar-abas" class="tech-btn" onclick="puxarAbasAbertas(this)"
           style="--btn-color: #007bff;">Puxar Caixas da Extensão 🔄</button>
         <button class="tech-btn solid" onclick="copiarCaixa(this)" style="--btn-color: var(--green);">Copiar Texto da
@@ -738,7 +736,7 @@
 
     let dadosExtensaoBrutos = {};
     let activeRequest = null;
-    let isSorted = false; // Controla se estamos vendo por loja ou todos unificados e sorteados
+    let isSorted = true; // Controla se estamos vendo por loja ou todos unificados e sorteados
 
     // Escuta a resposta e atualizações automáticas do bridge.js
     window.addEventListener("message", (event) => {
@@ -747,8 +745,8 @@
       const receivedData = event.data.data;
       dadosExtensaoBrutos = receivedData || {};
 
-      // Se chegou algo da extensão (seja primeira vez ou nova loja), reseta a visualização
-      isSorted = false;
+      // Se chegou algo da extensão (seja primeira vez ou nova loja), mantemos a lista organizada
+      isSorted = true;
       renderizarCaixa();
     });
 
@@ -758,7 +756,7 @@
       window.postMessage({ type: "TWO_CLEAR_COMPARADOR_DATA" }, "*");
       // Garante que a tela comece vazia
       dadosExtensaoBrutos = {};
-      isSorted = false;
+      isSorted = true;
       renderizarCaixa();
     }, 1000);
 
@@ -995,15 +993,6 @@
 
       divCaixa.innerHTML = htmlOut;
       clipboardTextClean = plainTextOut;
-    }
-
-    function organizarTudo() {
-      if (Object.keys(dadosExtensaoBrutos).length === 0) {
-        alert("Jogue itens da extensão para o comparador primeiro!");
-        return;
-      }
-      isSorted = true;
-      renderizarCaixa();
     }
 
     function puxarAbasAbertas(btnElement) {
