@@ -596,6 +596,7 @@
         <button class="tech-btn solid" onclick="copiarCaixa(this)" style="--btn-color: var(--green);">Copiar Texto da
           Caixa 📋</button>
       </div>
+      <p id="product-counter" style="color: #666; font-size: 13px; margin-top: 10px;"></p>
       <div
         style="display:flex; justify-content:flex-end; width:100%; max-width: 800px; padding-right: 16px; margin-bottom: 40px;">
         <button class="tech-btn" onclick="limparComparador()" style="--btn-color: #ff4444;">Limpar Lista 🗑️</button>
@@ -1111,6 +1112,7 @@
         if (!temProduto) {
           document.getElementById('filter-section').style.display = 'none';
           divCaixa.innerHTML = '<span style="color: #666;">Nenhum produto enviado pela extensão ainda...</span>';
+          document.getElementById('product-counter').innerText = '';
           clipboardTextClean = "";
           return;
         }
@@ -1172,6 +1174,8 @@
             htmlOut = '<span style="color:#666;">Nenhum produto atende aos filtros atuais...</span>';
             plainTextOut = '';
           }
+
+          document.getElementById('product-counter').innerText = `${unifiedAndSortedList.length} aparelhos encontrados`;
         }
 
         divCaixa.innerHTML = htmlOut;
