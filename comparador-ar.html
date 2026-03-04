@@ -969,7 +969,7 @@
             if (tl.includes('quente/frio') || tl.includes('quente e frio') || tl.includes('q/f')) emojiCycle = "🔥❄️";
             return `${emojiCycle} ${p.title}\n💰 <span style="color: var(--green); font-weight: bold;">${p.spot}</span>\n💳 <span style="color: #bbb;">${p.install}</span><span class="badge-inline ${badgeClass}">${storeName}</span>`;
           });
-          const blocoHtml = `📦 <strong>${storeName.toUpperCase()}</strong>\n${titleText}\n\n${listItemsHtml.join('\n\n<span style="color:#555">_____</span>\n\n')}`;
+          const blocoHtml = `<strong>${titleText}</strong>\n\n${listItemsHtml.join('\n\n<span style="color:#555">_____</span>\n\n')}`;
           blocosHtml.push(blocoHtml);
 
           // Plain string version (Sem loja)
