@@ -883,120 +883,89 @@
 
     function renderizarCaixa() {
       const divCaixa = document.getElementById("caixa-comparador");
-      const conteudos = Object.values(dadosExtensaoBrutos);
+      try {
+        const conteudos = Object.values(dadosExtensaoBrutos);
 
-      // Remove a metadata_title da array de conteudos
-      let dataToProcess = { ...dadosExtensaoBrutos };
-      delete dataToProcess.metadata_title;
+        // Remove a metadata_title da array de conteudos
+        let dataToProcess = { ...dadosExtensaoBrutos };
+        delete dataToProcess.metadata_title;
 
-      let temProduto = false;
-      Object.values(dataToProcess).forEach(list => { if (Array.isArray(list) && list.length > 0) temProduto = true; });
+        let temProduto = false;
+        Object.values(dataToProcess).forEach(list => { if (Array.isArray(list) && list.length > 0) temProduto = true; });
 
-      if (!temProduto) {
-        document.getElementById('filter-section').style.display = 'none';
-        divCaixa.innerHTML = '<span style="color: #666;">Nenhum produto enviado pela extensão ainda...</span>';
-        clipboardTextClean = "";
-        return;
-      }
-
-      document.getElementById('filter-section').style.display = 'block';
-
-      let htmlOut = "";
-      let plainTextOut = "";
-
-      if (isSorted) {
-        // == MODO: LISTA ÚNICA ORGANIZADA ==
-        let unifiedAndSortedList = [];
-        for (const [storeName, products] of Object.entries(dataToProcess)) {
-          if (Array.isArray(products)) {
-            products.forEach(p => {
-              const tempP = {
-                store: storeName,
-                title: p.title || "",
-                spot: p.spot || "",
-                install: p.install || "",
-                _parsedPrice: parseSpotPrice(p.spot)
-              };
-              if (produtoPassaNoFiltro(tempP)) {
-                unifiedAndSortedList.push(tempP);
-              }
-            });
-          }
+        if (!temProduto) {
+          document.getElementById('filter-section').style.display = 'none';
+          divCaixa.innerHTML = '<span style="color: #666;">Nenhum produto enviado pela extensão ainda...</span>';
+          clipboardTextClean = "";
+          return;
         }
 
-        unifiedAndSortedList.sort((a, b) => a._parsedPrice - b._parsedPrice);
+        document.getElementById('filter-section').style.display = 'block';
 
-        const titleStr = generateSmartTitle(unifiedAndSortedList);
-        const titleText = titleStr.split('\n').map(l => `*${l}*`).join('\n');
+        let htmlOut = "";
+        let plainTextOut = "";
 
-        htmlOut += `<strong>${titleText}</strong>\n\n=====================\n\n`;
-        plainTextOut += `${titleText}\n\n=====================\n\n`;
+        if (isSorted) {
+          // == MODO: LISTA ÚNICA ORGANIZADA ==
+          let unifiedAndSortedList = [];
+          for (const [storeName, products] of Object.entries(dataToProcess)) {
+            if (Array.isArray(products)) {
+              products.forEach(p => {
+                const tempP = {
+                  store: storeName,
+                  title: p.title || "",
+                  spot: p.spot || "",
+                  install: p.install || "",
+                  _parsedPrice: parseSpotPrice(p.spot)
+                };
+                if (produtoPassaNoFiltro(tempP)) {
+                  unifiedAndSortedList.push(tempP);
+                }
+              });
+            }
+          }
 
-        const listItemsHtml = unifiedAndSortedList.map(p => {
-          let badgeClass = "dufrio";
-          if (p.store.toLowerCase().includes('leveros')) badgeClass = "leveros";
-          if (p.store.toLowerCase().includes('central ar')) badgeClass = "centralar";
+          unifiedAndSortedList.sort((a, b) => a._parsedPrice - b._parsedPrice);
 
-          let emojiCycle = "❄️";
-          const tl = p.title.toLowerCase();
-          if (tl.includes('quente/frio') || tl.includes('quente e frio') || tl.includes('q/f')) emojiCycle = "🔥❄️";
-
-          // HTML version (com a badge discreta injetada na linha da parcela)
-          const htmlItem = `${emojiCycle} ${p.title}\n💰 <span style="color: var(--green); font-weight: bold;">${p.spot}</span>\n💳 <span style="color: #bbb;">${p.install}</span><span class="badge-inline ${badgeClass}">${p.store}</span>`;
-          return htmlItem;
-        });
-
-        htmlOut += listItemsHtml.join('\n\n<span style="color:#555">_____</span>\n\n');
-
-        // Texto plano limpíssimo sem as Lojas
-        const listItemsPlain = unifiedAndSortedList.map(p => formatProductText(p.title, p.spot, p.install));
-        plainTextOut += listItemsPlain.join('\n\n_____\n\n');
-
-      } else {
-        // == MODO: LISTAS SEPARADAS POR LOJA (Como chegaram) ==
-        let blocosHtml = [];
-        let blocosPlain = [];
-
-        for (const [storeName, products] of Object.entries(dataToProcess)) {
-          if (!Array.isArray(products) || products.length === 0) continue;
-
-          const filteredProducts = products.filter(p => produtoPassaNoFiltro(p));
-          if (filteredProducts.length === 0) continue; // Pula a loja inteira se todo mundo foi filtrado
-
-          let badgeClass = "dufrio";
-          if (storeName.toLowerCase().includes('leveros')) badgeClass = "leveros";
-          if (storeName.toLowerCase().includes('central ar')) badgeClass = "centralar";
-
-          const titleStr = generateSmartTitle(filteredProducts);
+          const titleStr = generateSmartTitle(unifiedAndSortedList);
           const titleText = titleStr.split('\n').map(l => `*${l}*`).join('\n');
 
-          // HTML version
-          const listItemsHtml = filteredProducts.map(p => {
+          htmlOut += `<strong>${titleText}</strong>\n\n=====================\n\n`;
+          plainTextOut += `${titleText}\n\n=====================\n\n`;
+
+          const listItemsHtml = unifiedAndSortedList.map(p => {
+            let badgeClass = "dufrio";
+            if (p.store.toLowerCase().includes('leveros')) badgeClass = "leveros";
+            if (p.store.toLowerCase().includes('central ar')) badgeClass = "centralar";
+
             let emojiCycle = "❄️";
             const tl = p.title.toLowerCase();
             if (tl.includes('quente/frio') || tl.includes('quente e frio') || tl.includes('q/f')) emojiCycle = "🔥❄️";
-            return `${emojiCycle} ${p.title}\n💰 <span style="color: var(--green); font-weight: bold;">${p.spot}</span>\n💳 <span style="color: #bbb;">${p.install}</span><span class="badge-inline ${badgeClass}">${storeName}</span>`;
-          });
-          const blocoHtml = `<strong>${titleText}</strong>\n\n${listItemsHtml.join('\n\n<span style="color:#555">_____</span>\n\n')}`;
-          blocosHtml.push(blocoHtml);
 
-          // Plain string version (Sem loja)
-          const listItemsPlain = filteredProducts.map(p => formatProductText(p.title, p.spot, p.install));
-          const blocoPlain = `${titleText}\n\n${listItemsPlain.join('\n\n_____\n\n')}`;
-          blocosPlain.push(blocoPlain);
+            // HTML version (com a badge discreta injetada na linha da parcela)
+            const htmlItem = `${emojiCycle} ${p.title}\n💰 <span style="color: var(--green); font-weight: bold;">${p.spot}</span>\n💳 <span style="color: #bbb;">${p.install}</span><span class="badge-inline ${badgeClass}">${p.store}</span>`;
+            return htmlItem;
+          });
+
+          htmlOut += listItemsHtml.join('\n\n<span style="color:#555">_____</span>\n\n');
+
+          // Texto plano limpíssimo sem as Lojas
+          const listItemsPlain = unifiedAndSortedList.map(p => formatProductText(p.title, p.spot, p.install));
+          plainTextOut += listItemsPlain.join('\n\n_____\n\n');
+
         }
 
-        htmlOut = blocosHtml.length > 0 ? blocosHtml.join('\n\n\n=====================\n\n\n') : '<span style="color:#666;">Nenhum produto atende aos filtros atuais...</span>';
-        plainTextOut = blocosPlain.length > 0 ? blocosPlain.join('\n\n\n=====================\n\n\n') : '';
-      }
+        if (isSorted && unifiedAndSortedList && unifiedAndSortedList.length === 0) {
+          htmlOut = '<span style="color:#666;">Nenhum produto atende aos filtros atuais...</span>';
+          plainTextOut = '';
+        }
 
-      if (isSorted && unifiedAndSortedList.length === 0) {
-        htmlOut = '<span style="color:#666;">Nenhum produto atende aos filtros atuais...</span>';
-        plainTextOut = '';
+        divCaixa.innerHTML = htmlOut;
+        clipboardTextClean = plainTextOut;
+      } catch (e) {
+        divCaixa.innerHTML = '<span style="color:red">Oops, houve um erro ao processar: ' + e.message + '</span>';
+        console.error("Renderer Exception:", e);
       }
-
-      divCaixa.innerHTML = htmlOut;
-      clipboardTextClean = plainTextOut;
     }
 
     function puxarAbasAbertas(btnElement) {
