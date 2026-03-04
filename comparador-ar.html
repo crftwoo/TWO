@@ -709,8 +709,7 @@
           style="--btn-color: #4b9ce3;">Puxar Caixas da Extensão 🔄</button>
         <button class="tech-btn solid" onclick="copiarCaixa(this)" style="--btn-color: var(--green);">Copiar Texto da
           Caixa 📋</button>
-        <button class="tech-btn" onclick="gerarCardsVisuais()" style="--btn-color: #b08d57;">Gerar Cards Visuais
-          🖼️</button>
+        <button class="tech-btn" onclick="gerarCardsVisuais()" style="--btn-color: #b08d57;">Gerar Cards 🖼️</button>
       </div>
       <p id="product-counter" style="color: #666; font-size: 13px; margin-top: 10px;"></p>
 
@@ -1374,16 +1373,22 @@
         imgBox.title = "Clique para copiar essa imagem";
 
         const storeBadge = document.createElement('div');
-        storeBadge.className = 'badge-store-overlay';
+        storeBadge.style.display = 'inline-block';
         storeBadge.style.background = bgLoja;
         storeBadge.style.color = textLoja;
+        storeBadge.style.padding = '2px 8px';
+        storeBadge.style.borderRadius = '4px';
+        storeBadge.style.fontSize = '9px';
+        storeBadge.style.fontWeight = 'bold';
+        storeBadge.style.textTransform = 'uppercase';
+        storeBadge.style.marginTop = '8px';
+        storeBadge.style.alignSelf = 'flex-start'; // Align left gracefully
         storeBadge.innerText = p.store;
 
         const imgEl = document.createElement('img');
         imgEl.src = p.image;
         if (!sn.includes('central ar')) imgEl.crossOrigin = "Anonymous";
 
-        imgBox.appendChild(storeBadge);
         imgBox.appendChild(imgEl);
 
         const textBox = document.createElement('div');
@@ -1408,6 +1413,7 @@
         textBox.appendChild(titleDiv);
         textBox.appendChild(spotDiv);
         textBox.appendChild(instDiv);
+        textBox.appendChild(storeBadge);
 
         card.appendChild(imgBox);
         card.appendChild(textBox);
