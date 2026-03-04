@@ -847,22 +847,20 @@
     let clipboardTextClean = "";
 
     function limparComparador() {
-      if (confirm("Tem certeza que quer limpar a lista para começar de novo?")) {
-        // Limpa a interface imediatamente
-        dadosExtensaoBrutos = {};
-        isSorted = false;
-        renderizarCaixa();
+      // Limpa a interface imediatamente
+      dadosExtensaoBrutos = {};
+      isSorted = false;
+      renderizarCaixa();
 
-        // Pede pra ponte limpar na extensão também pra evitar lista fantasma voltando depois
-        window.postMessage({ type: "TWO_CLEAR_COMPARADOR_DATA" }, "*");
+      // Pede pra ponte limpar na extensão também pra evitar lista fantasma voltando depois
+      window.postMessage({ type: "TWO_CLEAR_COMPARADOR_DATA" }, "*");
 
-        // Dá um feedback extra pro usuário
-        const btnLimpar = document.querySelector('button[onclick="limparComparador()"]');
-        if (btnLimpar) {
-          const txtOriginal = btnLimpar.innerText;
-          btnLimpar.innerText = "Lista Limpa! ✔️";
-          setTimeout(() => btnLimpar.innerText = txtOriginal, 2000);
-        }
+      // Dá um feedback extra pro usuário
+      const btnLimpar = document.querySelector('button[onclick="limparComparador()"]');
+      if (btnLimpar) {
+        const txtOriginal = btnLimpar.innerText;
+        btnLimpar.innerText = "Lista Limpa! ✔️";
+        setTimeout(() => btnLimpar.innerText = txtOriginal, 2000);
       }
     }
 
