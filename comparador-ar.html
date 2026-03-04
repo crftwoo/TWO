@@ -638,6 +638,8 @@
       // Se o usuario clica no macro, ele DEIXA SOMENTE as marcas dessa qualidade, 
       // desligando todas as outras marcas.
 
+      const isAlreadyActive = btnEl.classList.contains('active');
+
       // 1. Desliga todas as marcas globalmente
       for (let m in ACTIVE_FILTERS.marca) {
         ACTIVE_FILTERS.marca[m] = false;
@@ -646,6 +648,12 @@
 
       // 2. Desliga os outros botões Macro visualmente
       document.querySelectorAll('.filter-badge[data-macro]').forEach(el => el.classList.remove('active'));
+
+      // Se já estava ativo, a ação acima de desligar tudo já fez o papel de "tirar a seleção do próprio botão"
+      if (isAlreadyActive) {
+        renderizarCaixa();
+        return;
+      }
 
       // 3. Liga o Macro atual
       btnEl.classList.add('active');
