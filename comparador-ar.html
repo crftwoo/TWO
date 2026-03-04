@@ -642,7 +642,11 @@
     </div>
 
     <div class="form-step" id="step-resultados" style="padding-bottom: 20px; width: 100%;">
-      <h2 id="titulo-resultados">Resultados</h2>
+      <h2 id="titulo-resultados" style="margin-bottom: 12px;">Resultados</h2>
+      <div id="btn-abrir-todas-container" style="display: none; margin-bottom: 32px;">
+        <button id="btn-abrir-todas" class="tech-btn"
+          style="--btn-color: var(--green); padding: 8px 16px; font-size: 10px;">Abrir Todas as Lojas ↗</button>
+      </div>
       <div id="resultados"
         style="display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; width: 100%; max-width: 800px;">
       </div>
@@ -962,6 +966,21 @@
       const res = dados.filter(i => i.Tipo === tipoSelecionado && i.BTUs == btusSelecionado && i.Ciclo === cicloSelecionado);
       const div = document.getElementById("resultados");
       div.innerHTML = "";
+
+      const btnTodasContainer = document.getElementById("btn-abrir-todas-container");
+      const btnTodas = document.getElementById("btn-abrir-todas");
+
+      if (res.length > 0) {
+        btnTodasContainer.style.display = 'block';
+        btnTodas.onclick = () => {
+          res.forEach(i => {
+            if (i.Link) window.open(i.Link, '_blank');
+          });
+        };
+      } else {
+        btnTodasContainer.style.display = 'none';
+      }
+
       res.forEach(i => {
         const card = document.createElement("div");
         card.className = "card";
