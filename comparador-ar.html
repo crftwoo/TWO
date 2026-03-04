@@ -476,8 +476,8 @@
 
     .vc-img-box {
       width: 100%;
-      height: 220px;
-      /* Aumentado para dar mais destaque a foto */
+      height: 200px;
+      /* Altura ajustada para caber a foto redondinha */
       background: #fff;
       /* Fundo branco pra mesclar melhor com as fotos que originalmente tem fundo branco */
       display: flex;
@@ -491,8 +491,8 @@
     .vc-img-box img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      /* Faz a imagem preencher todo o espaço, adaptando aos lados sem distorcer e sem deixar faixas pretas */
+      object-fit: contain;
+      /* Voltei pro contain para não cortar nada da imagem original, mas agora ela ocupa 100% da largura/altura do container branco que toca as bordas */
       transition: transform 0.2s ease;
     }
 
