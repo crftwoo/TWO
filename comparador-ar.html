@@ -641,38 +641,60 @@
     }
 
     function toggleQualityMacro(qualityKey, btnEl) {
-      // Se o usuario clica no macro, ele DEIXA SOMENTE as marcas dessa qualidade, 
-      // desligando todas as outras marcas.
-
       const isAlreadyActive = btnEl.classList.contains('active');
+      const macros = document.querySelectorAll('.filter-badge[data-macro]');
+      const activeMacrosCount = Array.from(macros).filter(el => el.classList.contains('active')).length;
 
-      // 1. Desliga todas as marcas globalmente
-      for (let m in ACTIVE_FILTERS.marca) {
-        ACTIVE_FILTERS.marca[m] = false;
-      }
-      document.querySelectorAll('#dynamic-brand-filters .filter-badge').forEach(el => el.classList.remove('active'));
-
-      // 2. Desliga os outros botões Macro visualmente
-      document.querySelectorAll('.filter-badge[data-macro]').forEach(el => el.classList.remove('active'));
-
-      // Se já estava ativo, a ação acima de desligar tudo já fez o papel de "tirar a seleção do próprio botão"
-      if (isAlreadyActive) {
-        renderizarCaixa();
-        return;
-      }
-
-      // 3. Liga o Macro atual
-      btnEl.classList.add('active');
-
-      // 4. Liga APENAS as marcas que pertencem a essa qualidade e que existem na busca
       const brands = QUALITY_BRANDS[qualityKey] || [];
-      brands.forEach(b => {
-        if (ACTIVE_FILTERS.marca[b] !== undefined) {
-          ACTIVE_FILTERS.marca[b] = true;
-          const bndBadge = document.querySelector(`#dynamic-brand-filters .filter-badge[data-filter="${b}"]`);
-          if (bndBadge) bndBadge.classList.add('active');
+
+      if (!isAlreadyActive && activeMacrosCount === 0) {
+        // Isolamento: Primeiro macro clicado. Desliga todas as marcas globais
+        for (let m in ACTIVE_FILTERS.marca) {
+          ACTIVE_FILTERS.marca[m] = false;
         }
-      });
+        document.querySelectorAll('#dynamic-brand-filters .filter-badge').forEach(el => el.classList.remove('active'));
+
+        // Liga o macro atual
+        btnEl.classList.add('active');
+        brands.forEach(b => {
+          if (ACTIVE_FILTERS.marca[b] !== undefined) {
+            ACTIVE_FILTERS.marca[b] = true;
+            const bndBadge = document.querySelector(`#dynamic-brand-filters .filter-badge[data-filter="${b}"]`);
+            if (bndBadge) bndBadge.classList.add('active');
+          }
+        });
+
+      } else if (!isAlreadyActive && activeMacrosCount > 0) {
+        // Adição: Mais de um macro selecionado. Liga as marcas em conjunto.
+        btnEl.classList.add('active');
+        brands.forEach(b => {
+          if (ACTIVE_FILTERS.marca[b] !== undefined) {
+            ACTIVE_FILTERS.marca[b] = true;
+            const bndBadge = document.querySelector(`#dynamic-brand-filters .filter-badge[data-filter="${b}"]`);
+            if (bndBadge) bndBadge.classList.add('active');
+          }
+        });
+
+      } else if (isAlreadyActive) {
+        // Subtração/Remoção: Desliga o macro e suas respectivas marcas
+        btnEl.classList.remove('active');
+        brands.forEach(b => {
+          if (ACTIVE_FILTERS.marca[b] !== undefined) {
+            ACTIVE_FILTERS.marca[b] = false;
+            const bndBadge = document.querySelector(`#dynamic-brand-filters .filter-badge[data-filter="${b}"]`);
+            if (bndBadge) bndBadge.classList.remove('active');
+          }
+        });
+
+        // Se era o último macro sendo desativado, o comportamento padrão agradável
+        // é voltar a mostrar todas as marcas (reset do filtro)
+        if (activeMacrosCount === 1) {
+          for (let m in ACTIVE_FILTERS.marca) {
+            ACTIVE_FILTERS.marca[m] = true;
+          }
+          document.querySelectorAll('#dynamic-brand-filters .filter-badge').forEach(el => el.classList.add('active'));
+        }
+      }
 
       renderizarCaixa();
     }
@@ -692,10 +714,8 @@
         else el.classList.remove('active');
       });
 
-      if (newVal) {
-        // Quando seleciona todos, os macros de qualidade precisam acender tbm
-        document.querySelectorAll('.filter-badge[data-macro]').forEach(el => el.classList.add('active'));
-      }
+      // Garante que os macros sejam desativados visualmente quando mexemos no global
+      document.querySelectorAll('.filter-badge[data-macro]').forEach(el => el.classList.remove('active'));
 
       const btn = document.getElementById('btn-toggle-all-filters');
       if (btn) btn.innerText = newVal ? "Desmarcar Todos" : "Marcar Todos";
