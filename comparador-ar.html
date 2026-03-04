@@ -353,6 +353,8 @@
       color: #777;
       transition: all 0.2s;
       user-select: none;
+      opacity: 0.35;
+      filter: grayscale(100%);
     }
 
     .filter-badge:hover {
@@ -363,6 +365,8 @@
       color: #000;
       border-color: transparent;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      opacity: 1;
+      filter: grayscale(0%);
     }
 
     .filter-badge.active[data-filter="premium"] {
@@ -556,6 +560,18 @@
         <p>Lojas Encontradas</p>
         <div class="filter-badges" id="dynamic-store-filters"></div>
 
+        <p>Seleção em Massa por Qualidade</p>
+        <div class="filter-badges">
+          <div class="filter-badge active" style="background:#b08d57; color:#000;" data-macro="premium"
+            onclick="toggleQualityMacro('premium', this)">🔝 Premium</div>
+          <div class="filter-badge active" style="background:#00b050; color:#000;" data-macro="boa"
+            onclick="toggleQualityMacro('boa', this)">🟢 Boa</div>
+          <div class="filter-badge active" style="background:#ffc000; color:#000;" data-macro="inter"
+            onclick="toggleQualityMacro('inter', this)">🟡 Intermediária</div>
+          <div class="filter-badge active" style="background:#ff0000; color:#000;" data-macro="basica"
+            onclick="toggleQualityMacro('basica', this)">🔴 Básica</div>
+        </div>
+
         <p>Marcas Identificadas</p>
         <div class="filter-badges" id="dynamic-brand-filters"></div>
 
@@ -592,24 +608,57 @@
     };
     let allFiltersActive = true;
 
-    const KNOWN_BRANDS = [
-      'daikin', 'fujitsu', 'hitachi', 'trane', 'lg', 'samsung', 'gree', 'carrier', 'midea', 'hisense',
-      'springer', 'elgin', 'tcl', 'agratto', 'electrolux', 'consul', 'brastemp', 'philco', 'eos', 'britânia', 'britania', 'admiral', 'cadence', 'comfee'
-    ];
+    const QUALITY_BRANDS = {
+      premium: ['daikin', 'fujitsu', 'hitachi', 'trane'],
+      boa: ['lg', 'samsung', 'gree', 'carrier', 'midea', 'hisense'],
+      inter: ['springer', 'elgin', 'tcl', 'agratto', 'electrolux'],
+      basica: ['consul', 'brastemp', 'philco', 'eos', 'britânia', 'britania', 'admiral', 'cadence', 'comfee']
+    };
 
     function extractExplicitBrand(titulo) {
       if (!titulo) return 'outras';
       const lowerT = titulo.toLowerCase();
-      for (const b of KNOWN_BRANDS) {
-        if (b === 'lg') {
-          if (lowerT.match(/\blg\b/)) return 'lg';
-          continue;
-        }
-        if (lowerT.includes(b)) {
-          return b === 'britânia' ? 'britania' : b;
+      for (const [q, marcas] of Object.entries(QUALITY_BRANDS)) {
+        for (const b of marcas) {
+          if (b === 'lg') {
+            if (lowerT.match(/\blg\b/)) return 'lg';
+            continue;
+          }
+          if (lowerT.includes(b)) {
+            return b === 'britânia' ? 'britania' : b;
+          }
         }
       }
       return 'outras';
+    }
+
+    function toggleQualityMacro(qualityKey, btnEl) {
+      // Se o usuario clica no macro, ele DEIXA SOMENTE as marcas dessa qualidade, 
+      // desligando todas as outras marcas.
+
+      // 1. Desliga todas as marcas globalmente
+      for (let m in ACTIVE_FILTERS.marca) {
+        ACTIVE_FILTERS.marca[m] = false;
+      }
+      document.querySelectorAll('#dynamic-brand-filters .filter-badge').forEach(el => el.classList.remove('active'));
+
+      // 2. Desliga os outros botões Macro visualmente
+      document.querySelectorAll('.filter-badge[data-macro]').forEach(el => el.classList.remove('active'));
+
+      // 3. Liga o Macro atual
+      btnEl.classList.add('active');
+
+      // 4. Liga APENAS as marcas que pertencem a essa qualidade e que existem na busca
+      const brands = QUALITY_BRANDS[qualityKey] || [];
+      brands.forEach(b => {
+        if (ACTIVE_FILTERS.marca[b] !== undefined) {
+          ACTIVE_FILTERS.marca[b] = true;
+          const bndBadge = document.querySelector(`#dynamic-brand-filters .filter-badge[data-filter="${b}"]`);
+          if (bndBadge) bndBadge.classList.add('active');
+        }
+      });
+
+      renderizarCaixa();
     }
 
     function toggleAllFilters() {
@@ -627,6 +676,11 @@
         else el.classList.remove('active');
       });
 
+      if (newVal) {
+        // Quando seleciona todos, os macros de qualidade precisam acender tbm
+        document.querySelectorAll('.filter-badge[data-macro]').forEach(el => el.classList.add('active'));
+      }
+
       const btn = document.getElementById('btn-toggle-all-filters');
       if (btn) btn.innerText = newVal ? "Desmarcar Todos" : "Marcar Todos";
 
@@ -639,6 +693,11 @@
         element.classList.add('active');
       } else {
         element.classList.remove('active');
+      }
+
+      // Se for clique manual em marca, desativa o visual de macro isolado pra n confundir
+      if (category === 'marca') {
+        document.querySelectorAll('.filter-badge[data-macro]').forEach(el => el.classList.remove('active'));
       }
       renderizarCaixa();
     }
