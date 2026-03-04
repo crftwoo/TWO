@@ -447,6 +447,108 @@
       white-space: pre-wrap;
     }
 
+    /* Cards Visuais do Comparador */
+    #visual-cards-container {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+      width: 100%;
+      max-width: 1000px;
+      padding-bottom: 40px;
+    }
+
+    .visual-card {
+      background: #111;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .visual-card:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: #161616;
+    }
+
+    .vc-img-box {
+      width: 100%;
+      height: 180px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px;
+      cursor: pointer;
+      border: 3px solid transparent;
+      transition: border 0.3s;
+    }
+
+    .vc-img-box img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      transition: transform 0.2s ease;
+    }
+
+    .vc-img-box:hover img {
+      transform: scale(1.05);
+    }
+
+    .vc-text-box {
+      padding: 10px;
+      border-radius: 6px;
+      transition: background-color 0.2s ease;
+      border: 1px solid transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+    }
+
+    .vc-text-box:hover {
+      background-color: rgba(255, 255, 255, 0.03);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .vc-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #ccc;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .vc-spot {
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .vc-install {
+      font-size: 12px;
+      color: #777;
+      font-weight: 400;
+    }
+
+    .badge-store-overlay {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      backdrop-filter: blur(4px);
+      z-index: 2;
+    }
+
     .form-step {
       display: none;
     }
@@ -595,10 +697,15 @@
           style="--btn-color: #007bff;">Puxar Caixas da Extensão 🔄</button>
         <button class="tech-btn solid" onclick="copiarCaixa(this)" style="--btn-color: var(--green);">Copiar Texto da
           Caixa 📋</button>
+        <button class="tech-btn" onclick="gerarCardsVisuais()"
+          style="--btn-color: #b08d57; border-color: #b08d57; color: #b08d57;">Gerar Cards Visuais 🖼️</button>
       </div>
       <p id="product-counter" style="color: #666; font-size: 13px; margin-top: 10px;"></p>
+
+      <div id="visual-cards-container"></div>
+
       <div
-        style="display:flex; justify-content:flex-end; width:100%; max-width: 800px; padding-right: 16px; margin-bottom: 40px;">
+        style="display:flex; justify-content:flex-end; width:100%; max-width: 800px; padding-right: 16px; margin-bottom: 40px; margin-top: 20px;">
         <button class="tech-btn" onclick="limparComparador()" style="--btn-color: #ff4444;">Limpar Lista 🗑️</button>
       </div>
     </div>
@@ -1185,10 +1292,168 @@
 
         divCaixa.innerHTML = htmlOut;
         clipboardTextClean = plainTextOut;
+
+        // Se a grade estiver aberta, atualiza ela automaticamente ao filtrar
+        if (document.getElementById('visual-cards-container').style.display === 'grid') {
+          gerarCardsVisuais();
+        }
+
       } catch (e) {
         divCaixa.innerHTML = '<span style="color:red">Oops, houve um erro ao processar: ' + e.message + '</span>';
         console.error("Renderer Exception:", e);
       }
+    }
+
+    function gerarCardsVisuais() {
+      const container = document.getElementById('visual-cards-container');
+      container.style.display = 'grid';
+      container.innerHTML = ''; // Limpa anterior
+
+      // Pega os dados atuais filtrados
+      let dataToProcess = { ...dadosExtensaoBrutos };
+      delete dataToProcess.metadata_title;
+
+      let unifiedAndSortedList = [];
+      for (const [storeName, products] of Object.entries(dataToProcess)) {
+        if (Array.isArray(products)) {
+          products.forEach(p => {
+            const tempP = {
+              store: storeName,
+              title: p.title || "",
+              spot: p.spot || "",
+              install: p.install || "",
+              image: p.image || "",
+              _parsedPrice: parseSpotPrice(p.spot)
+            };
+            if (produtoPassaNoFiltro(tempP)) {
+              unifiedAndSortedList.push(tempP);
+            }
+          });
+        }
+      }
+
+      unifiedAndSortedList.sort((a, b) => a._parsedPrice - b._parsedPrice);
+
+      if (unifiedAndSortedList.length === 0) {
+        container.innerHTML = '<span style="color:#666; grid-column: 1 / -1; text-align: center;">Nenhum card para exibir com os filtros atuais.</span>';
+        return;
+      }
+
+      unifiedAndSortedList.forEach(p => {
+        const card = document.createElement('div');
+        card.className = 'visual-card';
+
+        // Determina a cor da loja
+        let bgLoja = "#000"; let textLoja = "#fff";
+        let sn = p.store.toLowerCase();
+        if (sn.includes('dufrio')) { bgLoja = "#0038A8"; }
+        else if (sn.includes('leveros')) { bgLoja = "#56B141"; }
+        else if (sn.includes('central ar')) { bgLoja = "#ff5722"; } // Laranja Central Ar
+
+        const imgBox = document.createElement('div');
+        imgBox.className = 'vc-img-box';
+        imgBox.style.position = 'relative';
+        imgBox.title = "Clique para copiar essa imagem";
+
+        const storeBadge = document.createElement('div');
+        storeBadge.className = 'badge-store-overlay';
+        storeBadge.style.background = bgLoja;
+        storeBadge.style.color = textLoja;
+        storeBadge.innerText = p.store;
+
+        const imgEl = document.createElement('img');
+        imgEl.src = p.image;
+        if (!sn.includes('central ar')) imgEl.crossOrigin = "Anonymous";
+
+        imgBox.appendChild(storeBadge);
+        imgBox.appendChild(imgEl);
+
+        const textBox = document.createElement('div');
+        textBox.className = 'vc-text-box';
+        textBox.title = "Clique para copiar as info de venda";
+
+        let emojiCycle = "❄️";
+        if (p.title.toLowerCase().includes('quente/frio') || p.title.toLowerCase().includes('q/f')) emojiCycle = "🔥❄️";
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'vc-title';
+        titleDiv.innerText = `${emojiCycle} ${p.title}`;
+
+        const spotDiv = document.createElement('div');
+        spotDiv.className = 'vc-spot';
+        spotDiv.innerText = `💰 ${p.spot}`;
+
+        const instDiv = document.createElement('div');
+        instDiv.className = 'vc-install';
+        instDiv.innerText = `💳 ${p.install}`;
+
+        textBox.appendChild(titleDiv);
+        textBox.appendChild(spotDiv);
+        textBox.appendChild(instDiv);
+
+        card.appendChild(imgBox);
+        card.appendChild(textBox);
+
+        container.appendChild(card);
+
+        // --- AÇÕES DO CLIQUE (Copiar) ---
+        textBox.onclick = () => {
+          const textToCopy = formatProductText(p.title, p.spot, p.install);
+          navigator.clipboard.writeText(textToCopy).then(() => {
+            const originalBg = textBox.style.backgroundColor;
+            textBox.style.backgroundColor = 'rgba(195, 255, 0, 0.2)'; // Fundo var(--green) opaco
+            setTimeout(() => textBox.style.backgroundColor = originalBg, 500);
+          });
+        };
+
+        imgBox.onclick = async () => {
+          if (sn.includes('central ar')) {
+            // Copiar apenas o link como texto se for Central Ar devido a sua estrutura Blob URL
+            navigator.clipboard.writeText(p.image).then(() => {
+              const originalBorder = imgBox.style.border;
+              imgBox.style.border = '3px solid #ffc107'; // Yellow Alert URL copied
+              setTimeout(() => imgBox.style.border = originalBorder, 500);
+            });
+          } else {
+            try {
+              const canvas = document.createElement('canvas');
+              canvas.width = imgEl.naturalWidth || imgEl.width;
+              canvas.height = imgEl.naturalHeight || imgEl.height;
+              const ctx = canvas.getContext('2d');
+
+              ctx.fillStyle = '#FFFFFF';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.drawImage(imgEl, 0, 0);
+
+              canvas.toBlob(blob => {
+                if (!blob) throw new Error("CORS bloq");
+                const item = new ClipboardItem({ "image/png": blob });
+                navigator.clipboard.write([item]).then(() => {
+                  const originalBorder = imgBox.style.border;
+                  imgBox.style.border = '3px solid #c3ff00';
+                  setTimeout(() => imgBox.style.border = originalBorder, 500);
+                }).catch(err => copyImageFallback());
+              }, "image/png");
+
+            } catch (err) {
+              copyImageFallback();
+            }
+          }
+
+          function copyImageFallback() {
+            navigator.clipboard.writeText(p.image).then(() => {
+              const originalBorder = imgBox.style.border;
+              imgBox.style.border = '3px solid #ffc107';
+              setTimeout(() => imgBox.style.border = originalBorder, 500);
+            });
+          }
+        };
+      });
+
+      // Rola a pagina para os cards
+      setTimeout(() => {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     }
 
     function puxarAbasAbertas(btnElement) {
