@@ -660,9 +660,13 @@
           <h3
             style="margin: 0; font-size: 14px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #fff;">
             Filtros de Tabela</h3>
-          <button id="btn-toggle-all-filters" class="tech-btn"
-            style="--btn-color: #71717a; padding: 6px 12px; font-size: 9px;" onclick="toggleAllFilters()">Desmarcar
-            Todos</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="tech-btn" onclick="limparComparador()"
+              style="--btn-color: #ff4444; padding: 6px 12px; font-size: 9px;">Limpar Lista 🗑️</button>
+            <button id="btn-toggle-all-filters" class="tech-btn"
+              style="--btn-color: #71717a; padding: 6px 12px; font-size: 9px;" onclick="toggleAllFilters()">Desmarcar
+              Todos</button>
+          </div>
         </div>
 
         <p>Lojas Encontradas</p>
@@ -708,10 +712,6 @@
 
       <div id="visual-cards-container"></div>
 
-      <div
-        style="display:flex; justify-content:flex-end; width:100%; max-width: 800px; padding-right: 16px; margin-bottom: 40px; margin-top: 20px;">
-        <button class="tech-btn" onclick="limparComparador()" style="--btn-color: #ff4444;">Limpar Lista 🗑️</button>
-      </div>
     </div>
   </div>
 
