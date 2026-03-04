@@ -546,21 +546,21 @@
       <div id="caixa-comparador" class="fake-textarea">Nenhum produto enviado pela extensão ainda...</div>
 
       <div class="filter-section" id="filter-section" style="display: none;">
-        <p>Filtrar por Qualidade (Marcas)</p>
-        <div class="filter-badges">
-          <div class="filter-badge active" data-filter="premium" onclick="toggleFilter('qualidade', 'premium', this)">🔝
-            Premium</div>
-          <div class="filter-badge active" data-filter="boa" onclick="toggleFilter('qualidade', 'boa', this)">🟢 Boa
-          </div>
-          <div class="filter-badge active" data-filter="inter" onclick="toggleFilter('qualidade', 'inter', this)">🟡
-            Intermediária</div>
-          <div class="filter-badge active" data-filter="basica" onclick="toggleFilter('qualidade', 'basica', this)">🔴
-            Básica</div>
-          <div class="filter-badge active" data-filter="outra" onclick="toggleFilter('qualidade', 'outra', this)">⚪
-            Desconhecida</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h3 style="margin: 0; font-size: 16px; font-weight: 600; color: #fff;">Filtros de Lista</h3>
+          <button id="btn-toggle-all-filters" class="badge-inline"
+            style="background: var(--green); color: black; border: none; cursor: pointer; padding: 6px 12px; font-weight: bold;"
+            onclick="toggleAllFilters()">Desmarcar Todos</button>
         </div>
-        <p>Filtrar por Ciclo</p>
-        <div class="filter-badges">
+
+        <p>Lojas Encontradas</p>
+        <div class="filter-badges" id="dynamic-store-filters"></div>
+
+        <p>Marcas Identificadas</p>
+        <div class="filter-badges" id="dynamic-brand-filters"></div>
+
+        <p>Ciclo</p>
+        <div class="filter-badges" id="dynamic-cycle-filters">
           <div class="filter-badge active" data-filter="sf" onclick="toggleFilter('ciclo', 'sf', this)">❄️ Só Frio</div>
           <div class="filter-badge active" data-filter="qf" onclick="toggleFilter('ciclo', 'qf', this)">🔥❄️ Quente/Frio
           </div>
@@ -584,28 +584,53 @@
     let dados = [], tipoSelecionado = null, btusSelecionado = null, cicloSelecionado = null;
     let ativoTipo = null, ativoBtu = null, ativoCiclo = null;
 
-    // Estado dos Filtros
+    // Estado dos Filtros (Inicializado dinamicamente)
     let ACTIVE_FILTERS = {
-      qualidade: { premium: true, boa: true, inter: true, basica: true, outra: true },
+      loja: {},
+      marca: {},
       ciclo: { sf: true, qf: true }
     };
+    let allFiltersActive = true;
 
-    const QUALITY_BRANDS = {
-      premium: ['daikin', 'fujitsu', 'hitachi', 'trane'],
-      boa: ['lg', 'samsung', 'gree', 'carrier', 'midea', 'hisense'],
-      inter: ['springer', 'elgin', 'tcl', 'agratto', 'electrolux'],
-      basica: ['consul', 'brastemp', 'philco', 'eos', 'britânia', 'britania', 'admiral', 'cadence', 'comfee']
-    };
+    const KNOWN_BRANDS = [
+      'daikin', 'fujitsu', 'hitachi', 'trane', 'lg', 'samsung', 'gree', 'carrier', 'midea', 'hisense',
+      'springer', 'elgin', 'tcl', 'agratto', 'electrolux', 'consul', 'brastemp', 'philco', 'eos', 'britânia', 'britania', 'admiral', 'cadence', 'comfee'
+    ];
 
-    function identificarQualidadeDaMarca(titulo) {
-      if (!titulo) return 'outra';
+    function extractExplicitBrand(titulo) {
+      if (!titulo) return 'outras';
       const lowerT = titulo.toLowerCase();
-      for (const [q, marcas] of Object.entries(QUALITY_BRANDS)) {
-        for (const m of marcas) {
-          if (lowerT.includes(m)) return q;
+      for (const b of KNOWN_BRANDS) {
+        if (b === 'lg') {
+          if (lowerT.match(/\blg\b/)) return 'lg';
+          continue;
+        }
+        if (lowerT.includes(b)) {
+          return b === 'britânia' ? 'britania' : b;
         }
       }
-      return 'outra';
+      return 'outras';
+    }
+
+    function toggleAllFilters() {
+      allFiltersActive = !allFiltersActive;
+      const newVal = allFiltersActive;
+
+      for (let category in ACTIVE_FILTERS) {
+        for (let key in ACTIVE_FILTERS[category]) {
+          ACTIVE_FILTERS[category][key] = newVal;
+        }
+      }
+
+      document.querySelectorAll('.filter-badge').forEach(el => {
+        if (newVal) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+
+      const btn = document.getElementById('btn-toggle-all-filters');
+      if (btn) btn.innerText = newVal ? "Desmarcar Todos" : "Marcar Todos";
+
+      renderizarCaixa();
     }
 
     function toggleFilter(category, val, element) {
@@ -735,6 +760,50 @@
 
     // ====== LÓGICA DE INTEGRAÇÃO COM A EXTENSÃO ======
 
+    function updateDynamicFilters(rawData) {
+      let allStores = new Set();
+      let allBrands = new Set();
+      let hasData = false;
+
+      let dataToProcess = { ...rawData };
+      delete dataToProcess.metadata_title;
+
+      for (const [storeName, products] of Object.entries(dataToProcess)) {
+        if (Array.isArray(products) && products.length > 0) {
+          hasData = true;
+          allStores.add(storeName);
+          products.forEach(p => {
+            const brand = extractExplicitBrand(p.title);
+            allBrands.add(brand);
+          });
+        }
+      }
+
+      ACTIVE_FILTERS = { loja: {}, marca: {}, ciclo: { sf: true, qf: true } };
+      allFiltersActive = true;
+      const btn = document.getElementById('btn-toggle-all-filters');
+      if (btn) btn.innerText = "Desmarcar Todos";
+
+      allStores.forEach(s => ACTIVE_FILTERS.loja[s] = true);
+      allBrands.forEach(b => ACTIVE_FILTERS.marca[b] = true);
+
+      const containerLoja = document.getElementById('dynamic-store-filters');
+      const containerMarca = document.getElementById('dynamic-brand-filters');
+
+      if (containerLoja && containerMarca) {
+        containerLoja.innerHTML = Array.from(allStores).map(s => `<div class="filter-badge active" data-filter="${s}" onclick="toggleFilter('loja', '${s}', this)">🏬 ${s}</div>`).join('');
+
+        if (allBrands.size > 0) {
+          containerMarca.innerHTML = Array.from(allBrands).sort().map(b => `<div class="filter-badge active" data-filter="${b}" onclick="toggleFilter('marca', '${b}', this)">🏷️ ${b.charAt(0).toUpperCase() + b.slice(1)}</div>`).join('');
+        } else {
+          containerMarca.innerHTML = '';
+        }
+
+        // Force Cycle badges to active visually since we reset the object to true
+        document.querySelectorAll('#dynamic-cycle-filters .filter-badge').forEach(el => el.classList.add('active'));
+      }
+    }
+
     let dadosExtensaoBrutos = {};
     let activeRequest = null;
     let isSorted = true; // Controla se estamos vendo por loja ou todos unificados e sorteados
@@ -748,6 +817,7 @@
 
       // Se chegou algo da extensão (seja primeira vez ou nova loja), mantemos a lista organizada
       isSorted = true;
+      updateDynamicFilters(dadosExtensaoBrutos);
       renderizarCaixa();
     });
 
@@ -758,6 +828,7 @@
       // Garante que a tela comece vazia
       dadosExtensaoBrutos = {};
       isSorted = true;
+      updateDynamicFilters(dadosExtensaoBrutos);
       renderizarCaixa();
     }, 1000);
 
@@ -867,8 +938,11 @@
 
     function produtoPassaNoFiltro(p) {
       if (!p || !p.title) return false;
-      const qualidade = identificarQualidadeDaMarca(p.title);
-      if (!ACTIVE_FILTERS.qualidade[qualidade]) return false;
+
+      if (!ACTIVE_FILTERS.loja[p.store]) return false;
+
+      const marca = extractExplicitBrand(p.title);
+      if (!ACTIVE_FILTERS.marca[marca]) return false;
 
       const tl = p.title.toLowerCase();
       let cicloType = 'sf'; // default Só Frio
