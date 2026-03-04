@@ -440,7 +440,7 @@
         const isQF = titleLower.includes('quente/frio') || titleLower.includes('quente e frio') || titleLower.includes('quente/ frio') || titleLower.includes('quente / frio') || titleLower.includes('quente frio') || titleLower.includes('q/f');
         const isSF = titleLower.includes('frio') && !isQF;
 
-        let type = 'Ar Condicionado';
+        let type = 'Hiwall'; // Padrão assume Hiwall para agrupar nomes genéricos com os explícitos
         if (titleLower.includes('teto')) {
             type = 'Piso Teto';
         } else if (titleLower.includes('cassete')) {
