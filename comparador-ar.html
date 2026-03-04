@@ -704,19 +704,24 @@
       allFiltersActive = !allFiltersActive;
       const newVal = allFiltersActive;
 
+      // Altera o objeto de estado geral
       for (let category in ACTIVE_FILTERS) {
         for (let key in ACTIVE_FILTERS[category]) {
           ACTIVE_FILTERS[category][key] = newVal;
         }
       }
 
-      document.querySelectorAll('.filter-badge').forEach(el => {
+      // Altera os badges de Loja, Marca, Tipo e Ciclo
+      document.querySelectorAll('.filter-badge:not([data-macro])').forEach(el => {
         if (newVal) el.classList.add('active');
         else el.classList.remove('active');
       });
 
-      // Garante que os macros sejam desativados visualmente quando mexemos no global
-      document.querySelectorAll('.filter-badge[data-macro]').forEach(el => el.classList.remove('active'));
+      // Altera especificamente os macros de qualidade
+      document.querySelectorAll('.filter-badge[data-macro]').forEach(el => {
+        if (newVal) el.classList.add('active');
+        else el.classList.remove('active');
+      });
 
       const btn = document.getElementById('btn-toggle-all-filters');
       if (btn) btn.innerText = newVal ? "Desmarcar Todos" : "Marcar Todos";
