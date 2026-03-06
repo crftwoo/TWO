@@ -1373,18 +1373,16 @@
         imgBox.title = "Clique para copiar essa imagem";
 
         const storeBadge = document.createElement('div');
-        storeBadge.style.position = 'absolute';
-        storeBadge.style.bottom = '0';
-        storeBadge.style.left = '0';
+        storeBadge.style.display = 'inline-block';
         storeBadge.style.background = bgLoja;
         storeBadge.style.color = textLoja;
-        storeBadge.style.padding = '4px 10px';
-        storeBadge.style.borderTopRightRadius = '8px'; // Gives a nice integrated look
-        storeBadge.style.borderBottomLeftRadius = '12px'; // Matches the card border radius
-        storeBadge.style.fontSize = '10px';
-        storeBadge.style.fontWeight = '900';
+        storeBadge.style.padding = '4px 8px';
+        storeBadge.style.borderRadius = '4px';
+        storeBadge.style.fontSize = '9px';
+        storeBadge.style.fontWeight = '800';
         storeBadge.style.textTransform = 'uppercase';
-        storeBadge.style.zIndex = '5';
+        storeBadge.style.marginTop = '6px'; // Space below install price
+        storeBadge.style.alignSelf = 'flex-start'; // Align strictly left
         storeBadge.innerText = p.store;
 
         const imgEl = document.createElement('img');
@@ -1392,7 +1390,6 @@
         if (!sn.includes('central ar')) imgEl.crossOrigin = "Anonymous";
 
         imgBox.appendChild(imgEl);
-        imgBox.appendChild(storeBadge);
 
         const textBox = document.createElement('div');
         textBox.className = 'vc-text-box';
@@ -1416,6 +1413,7 @@
         textBox.appendChild(titleDiv);
         textBox.appendChild(spotDiv);
         textBox.appendChild(instDiv);
+        textBox.appendChild(storeBadge);
 
         card.appendChild(imgBox);
         card.appendChild(textBox);
