@@ -1374,12 +1374,13 @@
 
         const storeBadge = document.createElement('div');
         storeBadge.style.position = 'absolute';
-        storeBadge.style.bottom = '0';
-        storeBadge.style.left = '0';
+        storeBadge.style.bottom = '-1px'; // Override the 1px card border
+        storeBadge.style.left = '-1px'; // Override the 1px card border
         storeBadge.style.background = bgLoja;
         storeBadge.style.color = textLoja;
         storeBadge.style.padding = '4px 10px';
-        storeBadge.style.borderTopRightRadius = '8px';
+        storeBadge.style.borderTopRightRadius = '12px';
+        storeBadge.style.borderBottomLeftRadius = '12px'; // Matches card border-radius perfectly
         storeBadge.style.fontSize = '10px';
         storeBadge.style.fontWeight = '900';
         storeBadge.style.textTransform = 'uppercase';
