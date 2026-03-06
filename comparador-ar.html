@@ -1373,16 +1373,17 @@
         imgBox.title = "Clique para copiar essa imagem";
 
         const storeBadge = document.createElement('div');
-        storeBadge.style.display = 'inline-block';
+        storeBadge.style.position = 'absolute';
+        storeBadge.style.bottom = '0';
+        storeBadge.style.left = '0';
         storeBadge.style.background = bgLoja;
         storeBadge.style.color = textLoja;
-        storeBadge.style.padding = '4px 8px';
-        storeBadge.style.borderRadius = '4px';
-        storeBadge.style.fontSize = '9px';
-        storeBadge.style.fontWeight = '800';
+        storeBadge.style.padding = '4px 10px';
+        storeBadge.style.borderTopRightRadius = '8px';
+        storeBadge.style.fontSize = '10px';
+        storeBadge.style.fontWeight = '900';
         storeBadge.style.textTransform = 'uppercase';
-        storeBadge.style.marginTop = '6px'; // Space below install price
-        storeBadge.style.alignSelf = 'flex-start'; // Align strictly left
+        storeBadge.style.zIndex = '5';
         storeBadge.innerText = p.store;
 
         const imgEl = document.createElement('img');
@@ -1410,13 +1411,12 @@
         instDiv.className = 'vc-install';
         instDiv.innerText = `💳 ${p.install}`;
 
-        textBox.appendChild(titleDiv);
-        textBox.appendChild(spotDiv);
-        textBox.appendChild(instDiv);
-        textBox.appendChild(storeBadge);
+        card.style.position = 'relative';
+        textBox.style.paddingBottom = '32px'; // Prevent install price from overlapping badge
 
         card.appendChild(imgBox);
         card.appendChild(textBox);
+        card.appendChild(storeBadge);
 
         container.appendChild(card);
 
