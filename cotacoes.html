@@ -21,11 +21,21 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;900&display=swap');
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             background-color: #050505;
+        }
+
+        .tech-btn-green {
+            box-shadow: 0 8px 15px rgba(155, 226, 13, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .tech-btn-green:hover {
+            box-shadow: 0 12px 20px rgba(155, 226, 13, 0.4);
+            transform: translateY(-2px);
         }
 
         /* Esconder setas do input number */
@@ -336,7 +346,7 @@
             return (
                 <div className="min-h-screen text-white p-4 sm:p-8">
                     <div className="max-w-5xl mx-auto">
-                        <header className="mb-8 border-b border-white/10 pb-6">
+                        <header className="mb-8 border-b border-white/5 pb-6">
                             <h1 className="text-3xl font-black uppercase italic text-[#9BE20D]">COTAÇÃO EXPRESS</h1>
                             <p className="text-zinc-500 text-xs uppercase tracking-widest mt-1">Sistema de Orçamentos Inteligente</p>
                         </header>
@@ -349,22 +359,22 @@
                                         <h2 className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Lista de Pedido</h2>
                                         <p className="text-[9px] text-zinc-600 italic">Itens duplicados são somados automaticamente.</p>
                                     </div>
-                                    <div className="bg-zinc-900 border border-white/10 p-2 rounded-xl w-20 h-20 flex flex-col items-center justify-center border-b-2 border-[#9BE20D]">
+                                    <div className="bg-zinc-900 border border-white/5 p-2 rounded-xl w-20 h-20 flex flex-col items-center justify-center border-b-2 border-[#9BE20D]">
                                         <span className="text-[7px] font-bold text-zinc-500">KG COBRE</span>
                                         <div className="flex items-center text-sm font-black">
                                             <span className="text-[#9BE20D] text-[10px] mr-1">R$</span>
                                             <input type="number" value={valorKgCobre} onChange={e => setValorKgCobre(Number(e.target.value))} className="bg-transparent w-full text-center outline-none" />
                                         </div>
                                     </div>
-                                    <button onClick={processarOrcamento} className="bg-[#9BE20D] text-black font-black px-8 py-4 rounded-xl uppercase tracking-widest hover:opacity-90 transition-all h-20">
+                                    <button onClick={processarOrcamento} className="tech-btn-green bg-[#9BE20D] text-black font-black px-8 py-4 rounded-xl uppercase tracking-widest hover:opacity-90 transition-all h-20">
                                         Gerar<br />Orçamento
                                     </button>
                                 </div>
 
                                 <textarea
                                     value={input} onChange={e => setInput(e.target.value)}
-                                    placeholder="Cole a lista aqui..."
-                                    className="w-full h-40 bg-zinc-900/30 border border-white/10 rounded-2xl p-4 font-mono text-sm outline-none focus:border-[#9BE20D] transition-all"
+                                    placeholder="Copie os itens do orçamento e cole a lista aqui..."
+                                    className="w-full h-40 bg-[#0A0A0A] border border-white/5 shadow-inner rounded-2xl p-6 text-sm outline-none focus:border-[#9BE20D] focus:shadow-[0_0_15px_rgba(155,226,13,0.1)] transition-all font-medium"
                                 />
 
                                 {erros.length > 0 && (
@@ -376,13 +386,13 @@
                             </div>
 
                             {/* Divisória */}
-                            {itens.length > 0 && <div className="border-t border-white/10 my-4"></div>}
+                            {itens.length > 0 && <div className="border-t border-white/5 my-4"></div>}
 
                             {/* Sessão de Orçamento (Baixo - Otimizada para Print) */}
                             {itens.length > 0 && (
                                 <div className="space-y-4">
                                     <div className="flex justify-end">
-                                        <button onClick={copiarImagem} className={`flex items-center gap-2 text-[10px] font-bold py-2 px-6 rounded-lg transition-all ${copiado ? 'bg-[#9BE20D] text-black scale-95' : 'bg-white/10 hover:bg-white/20 text-white'}`}>
+                                        <button onClick={copiarImagem} className={`flex items-center gap-2 text-[10px] font-bold py-2 px-6 rounded-lg transition-all ${copiado ? 'bg-[#9BE20D] text-black scale-95' : 'bg-[#0A0A0A] border border-white/5 shadow-lg hover:border-white/20 text-white'}`}>
                                             <span>{copiado ? "✔ COPIADO COM SUCESSO" : "COPIAR IMAGEM"}</span>
                                         </button>
                                     </div>
@@ -398,7 +408,7 @@
                                                     <tr className="bg-white/5 text-zinc-500 uppercase font-bold text-[9px] tracking-wider">
                                                         <th className="p-5 pl-6">Produto</th>
                                                         <th className="p-5">Qtd</th>
-                                                        <th className="p-5 font-mono text-center">Unitário</th>
+                                                        <th className="p-5 font-bold text-center">Unitário</th>
                                                         <th className="p-5 pr-6 text-right">Total</th>
                                                     </tr>
                                                 </thead>
@@ -413,7 +423,7 @@
                                                                     </span>
                                                                 ))}
                                                             </td>
-                                                            <td className="p-5 font-mono text-center">
+                                                            <td className="p-5 font-semibold text-center">
                                                                 <span className="text-zinc-400">R$ {item.valorUnit.toFixed(2)}</span>
                                                                 <span className="block text-[10px] text-zinc-600">/ {item.unidade}</span>
                                                             </td>
