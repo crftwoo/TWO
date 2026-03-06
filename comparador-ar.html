@@ -1412,6 +1412,10 @@
         instDiv.className = 'vc-install';
         instDiv.innerText = `💳 ${p.install}`;
 
+        textBox.appendChild(titleDiv);
+        textBox.appendChild(spotDiv);
+        textBox.appendChild(instDiv);
+
         card.style.position = 'relative';
         textBox.style.paddingBottom = '32px'; // Prevent install price from overlapping badge
 
