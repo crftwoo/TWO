@@ -453,7 +453,7 @@
           input.addEventListener('paste', (e) => {
             const t = e.clipboardData?.getData('text') || '';
             if (!t) return;
-            const parts = t.trim().split(/[\r\n\t;,\s]+/).map(s => s.trim()).filter(Boolean);
+            const parts = t.trim().split(/[\r\n\t;]+/).map(s => s.replace(/R\$\s*/gi, '').trim()).filter(Boolean);
             if (parts.length <= 1) return;
             e.preventDefault();
             for (let i = 0; i < parts.length && (startIdx + i) < inputsOrig.length; i++) {
@@ -473,7 +473,7 @@
           btnPaste.addEventListener('click', async () => {
             const assignLines = (text) => {
               if (!text) return;
-              const lines = text.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+              const lines = text.split(/\r?\n/).map(s => s.replace(/R\$\s*/gi, '').trim()).filter(Boolean);
               if (!lines.length) return;
               for (let i = 0; i < lines.length && i < inputsOrig.length; i++) {
                 inputsOrig[i].value = lines[i];
