@@ -116,27 +116,39 @@ async function initPopup() {
         const container = document.createElement('div');
         container.className = 'filters-container';
 
-        // Botão de Reset (Nova Busca)
-        const resetWrapper = document.createElement('div');
-        resetWrapper.style.display = 'flex';
-        resetWrapper.style.justifyContent = 'flex-end';
-        resetWrapper.style.marginBottom = '-15px';
-        resetWrapper.style.zIndex = '10';
-        resetWrapper.style.position = 'relative';
+        // Removed the hacky resetWrapper from here
 
-        const resetBtn = document.createElement('button');
-        resetBtn.innerHTML = '⟲ Nova Busca';
+        const errorsP = document.createElement('p');
+        errorsP.className = 'error-msg';
+        errorsP.style.display = 'none';
+
+        // Grupo: Tipo (mostra sozinho no início e depois fica só a escolha)
+        const tipoGroup = document.createElement('div');
+        tipoGroup.className = 'filter-group';
+
+        const tipoLabel = document.createElement('div');
+        tipoLabel.className = 'filter-label';
+        tipoLabel.style.display = 'flex';
+        tipoLabel.style.justifyContent = 'space-between';
+        tipoLabel.style.alignItems = 'center';
+
+        const labelText = document.createElement('span');
+        labelText.textContent = 'Tipo';
+
+        // Discreto botão de reset embutido no label
+        const resetBtn = document.createElement('span');
+        resetBtn.innerHTML = '⟲ Limpar Filtros';
         resetBtn.className = 'hidden';
-        resetBtn.style.background = 'transparent';
-        resetBtn.style.border = 'none';
-        resetBtn.style.boxShadow = 'none';
-        resetBtn.style.color = '#9BE20D';
-        resetBtn.style.width = 'auto';
-        resetBtn.style.padding = '0';
-        resetBtn.style.fontSize = '10px';
-        resetBtn.style.fontWeight = '800';
-        resetBtn.style.letterSpacing = '1px';
+        resetBtn.style.color = '#71717a';
         resetBtn.style.cursor = 'pointer';
+        resetBtn.style.textTransform = 'none';
+        resetBtn.style.letterSpacing = '0';
+        resetBtn.style.fontWeight = '500';
+        resetBtn.style.fontSize = '10px';
+        resetBtn.style.transition = 'color 0.2s';
+        
+        resetBtn.onmouseover = () => resetBtn.style.color = '#fff';
+        resetBtn.onmouseout = () => resetBtn.style.color = '#71717a';
 
         resetBtn.onclick = () => {
             selectedTipo = null;
@@ -151,20 +163,8 @@ async function initPopup() {
             renderTipoChips();
         };
 
-        resetWrapper.appendChild(resetBtn);
-        container.appendChild(resetWrapper);
-
-        const errorsP = document.createElement('p');
-        errorsP.className = 'error-msg';
-        errorsP.style.display = 'none';
-
-        // Grupo: Tipo (mostra sozinho no início e depois fica só a escolha)
-        const tipoGroup = document.createElement('div');
-        tipoGroup.className = 'filter-group';
-
-        const tipoLabel = document.createElement('div');
-        tipoLabel.className = 'filter-label';
-        tipoLabel.textContent = 'Tipo';
+        tipoLabel.appendChild(labelText);
+        tipoLabel.appendChild(resetBtn);
 
         const tipoRow = document.createElement('div');
         tipoRow.className = 'chip-row';
