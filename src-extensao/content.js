@@ -8,6 +8,7 @@
     function createPanel() {
         const panel = document.createElement('div');
         panel.id = 'dufrio-ext-panel';
+        panel.classList.add('dufrio-ext-hidden'); // Starts hidden
 
         const header = document.createElement('div');
         header.id = 'dufrio-ext-header';
@@ -102,7 +103,7 @@
         const closeBtn = document.createElement('button');
         closeBtn.id = 'dufrio-ext-close';
         closeBtn.innerHTML = '&times;';
-        closeBtn.onclick = () => panel.remove();
+        closeBtn.onclick = () => panel.classList.add('dufrio-ext-hidden');
 
         header.appendChild(titleArea);
         header.appendChild(closeBtn);
@@ -113,7 +114,16 @@
 
         panel.appendChild(header);
         panel.appendChild(content);
+
+        // Creates the floating trigger button
+        const floatingBtn = document.createElement('div');
+        floatingBtn.id = 'dufrio-ext-floating-btn';
+        floatingBtn.title = 'Abrir Busca Ar-Condicionado';
+        floatingBtn.innerHTML = '⇄';
+        floatingBtn.onclick = () => panel.classList.toggle('dufrio-ext-hidden');
+
         document.body.appendChild(panel);
+        document.body.appendChild(floatingBtn);
 
         return content;
     }

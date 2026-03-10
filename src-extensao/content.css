@@ -168,3 +168,36 @@
     color: #777;
     font-weight: 400;
 }
+
+#dufrio-ext-floating-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #0a0a0a;
+    border: 1px solid rgba(155, 226, 13, 0.4);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 10px rgba(155, 226, 13, 0.1);
+    color: #9BE20D;
+    font-size: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    z-index: 999998;
+    transition: all 0.3s ease;
+    font-family: 'Montserrat', system-ui, sans-serif;
+    user-select: none;
+}
+
+#dufrio-ext-floating-btn:hover {
+    transform: scale(1.05);
+    background: #111;
+    border-color: #9BE20D;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.6), 0 0 15px rgba(155, 226, 13, 0.3);
+}
+
+.dufrio-ext-hidden {
+    display: none !important;
+}
