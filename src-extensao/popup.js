@@ -116,6 +116,44 @@ async function initPopup() {
         const container = document.createElement('div');
         container.className = 'filters-container';
 
+        // Botão de Reset (Nova Busca)
+        const resetWrapper = document.createElement('div');
+        resetWrapper.style.display = 'flex';
+        resetWrapper.style.justifyContent = 'flex-end';
+        resetWrapper.style.marginBottom = '-15px';
+        resetWrapper.style.zIndex = '10';
+        resetWrapper.style.position = 'relative';
+
+        const resetBtn = document.createElement('button');
+        resetBtn.innerHTML = '⟲ Nova Busca';
+        resetBtn.className = 'hidden';
+        resetBtn.style.background = 'transparent';
+        resetBtn.style.border = 'none';
+        resetBtn.style.boxShadow = 'none';
+        resetBtn.style.color = '#9BE20D';
+        resetBtn.style.width = 'auto';
+        resetBtn.style.padding = '0';
+        resetBtn.style.fontSize = '10px';
+        resetBtn.style.fontWeight = '800';
+        resetBtn.style.letterSpacing = '1px';
+        resetBtn.style.cursor = 'pointer';
+
+        resetBtn.onclick = () => {
+            selectedTipo = null;
+            selectedBtus = null;
+            selectedCiclo = null;
+            resetBtn.classList.add('hidden');
+            btusGroup.classList.add('hidden');
+            cicloGroup.classList.add('hidden');
+            storesGroup.classList.add('hidden');
+            errorsP.style.display = 'none';
+            renderSummary();
+            renderTipoChips();
+        };
+
+        resetWrapper.appendChild(resetBtn);
+        container.appendChild(resetWrapper);
+
         const errorsP = document.createElement('p');
         errorsP.className = 'error-msg';
         errorsP.style.display = 'none';
@@ -136,6 +174,7 @@ async function initPopup() {
 
             // Depois de escolhido, mostra só o tipo selecionado no centro
             if (selectedTipo) {
+                resetBtn.classList.remove('hidden');
                 const chip = document.createElement('button');
                 chip.type = 'button';
                 chip.className = 'chip selected';
