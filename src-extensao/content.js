@@ -115,15 +115,91 @@
         panel.appendChild(header);
         panel.appendChild(content);
 
-        // Creates the floating trigger button
+        // Creates the floating trigger button wrapper
+        const floatingWrapper = document.createElement('div');
+        floatingWrapper.id = 'dufrio-ext-floating-wrapper';
+
         const floatingBtn = document.createElement('div');
         floatingBtn.id = 'dufrio-ext-floating-btn';
-        floatingBtn.title = 'Abrir Busca Ar-Condicionado';
+        floatingBtn.title = 'Abrir Busca Ar-Condicionado (Arraste para mover)';
         floatingBtn.innerHTML = '⇄';
-        floatingBtn.onclick = () => panel.classList.toggle('dufrio-ext-hidden');
+
+        const floatingClose = document.createElement('div');
+        floatingClose.id = 'dufrio-ext-floating-close';
+        floatingClose.title = 'Remover botão da tela';
+        floatingClose.innerHTML = '&times;';
+
+        floatingClose.onclick = (e) => {
+            e.stopPropagation();
+            floatingWrapper.remove();
+        };
+
+        // Drag logic
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop;
+
+        floatingBtn.addEventListener('mousedown', (e) => {
+            if (e.target.id === 'dufrio-ext-floating-close') return;
+            isDragging = false;
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            const rect = floatingWrapper.getBoundingClientRect();
+            initialLeft = rect.left;
+            initialTop = rect.top;
+
+            // Remove right/bottom to rely purely on left/top during drag
+            floatingWrapper.style.right = 'auto';
+            floatingWrapper.style.bottom = 'auto';
+            floatingWrapper.style.left = initialLeft + 'px';
+            floatingWrapper.style.top = initialTop + 'px';
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+
+        function onMouseMove(e) {
+            const dx = e.clientX - startX;
+            const dy = e.clientY - startY;
+
+            if (Math.abs(dx) > 3 || Math.abs(dy) > 3) {
+                isDragging = true;
+            }
+
+            if (isDragging) {
+                let newX = initialLeft + dx;
+                let newY = initialTop + dy;
+
+                const maxX = window.innerWidth - floatingWrapper.offsetWidth;
+                const maxY = window.innerHeight - floatingWrapper.offsetHeight;
+
+                newX = Math.max(0, Math.min(newX, maxX));
+                newY = Math.max(0, Math.min(newY, maxY));
+
+                floatingWrapper.style.left = newX + 'px';
+                floatingWrapper.style.top = newY + 'px';
+                
+                // Prevent text selection while dragging
+                e.preventDefault();
+            }
+        }
+
+        function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+
+        floatingBtn.onclick = () => {
+            if (!isDragging) {
+                panel.classList.toggle('dufrio-ext-hidden');
+            }
+        };
+
+        floatingWrapper.appendChild(floatingBtn);
+        floatingWrapper.appendChild(floatingClose);
 
         document.body.appendChild(panel);
-        document.body.appendChild(floatingBtn);
+        document.body.appendChild(floatingWrapper);
 
         return content;
     }
