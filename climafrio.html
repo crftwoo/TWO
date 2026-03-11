@@ -46,22 +46,18 @@
         .neon-glow:hover {
             box-shadow: 0 0 25px rgba(155, 226, 13, 0.5);
         }
-        .hero-bg {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            background-size: cover;
-            background-position: center;
+        .hero-img {
             opacity: 0;
             animation: heroFocus 24s infinite;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+            border-radius: 1rem;
         }
         @keyframes heroFocus {
-            0%   { opacity: 0; transform: scale(1); }
-            10%  { opacity: 0.4; transform: scale(1.02); }
-            25%  { opacity: 0.4; transform: scale(1.05); }
-            35%  { opacity: 0; transform: scale(1.08); }
-            100% { opacity: 0; transform: scale(1); }
+            0%   { opacity: 0; transform: translateY(15px); }
+            10%  { opacity: 1; transform: translateY(0); }
+            25%  { opacity: 1; transform: translateY(-5px); }
+            35%  { opacity: 0; transform: translateY(-15px); }
+            100% { opacity: 0; transform: translateY(15px); }
         }
     </style>
 </head>
@@ -90,14 +86,10 @@
 <!-- Hero Section -->
 <section class="relative min-h-[85vh] flex items-center overflow-hidden">
 <div class="absolute inset-0 z-0 bg-background-dark">
-<div class="absolute inset-0 bg-gradient-to-r from-background-dark via-background-dark/80 to-transparent z-10"></div>
-<div class="hero-bg" style="background-image: url('assets/bg_sala_marmore.png'); animation-delay: 0s;"></div>
-<div class="hero-bg" style="background-image: url('assets/bg_sala_marrom.png'); animation-delay: 6s;"></div>
-<div class="hero-bg" style="background-image: url('assets/bg_gelo.png'); animation-delay: 12s;"></div>
-<div class="hero-bg" style="background-image: url('assets/bg_wifi.png'); animation-delay: 18s;"></div>
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-background-dark to-background-dark z-10"></div>
 </div>
-<div class="max-w-7xl mx-auto px-6 relative z-20 w-full">
-<div class="max-w-2xl">
+<div class="max-w-7xl mx-auto px-6 relative z-20 w-full flex flex-col lg:flex-row items-center justify-between gap-12 py-12">
+<div class="max-w-2xl lg:w-1/2">
 <span class="inline-block py-1 px-3 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold tracking-widest uppercase mb-6">
                         Líder em Curitiba &amp; Região
                     </span>
@@ -115,6 +107,16 @@
                             Ver Catálogo
                         </a>
 </div>
+</div>
+<!-- Image Slider Right Side -->
+<div class="hidden lg:flex lg:w-1/2 justify-center items-center relative h-[600px] w-full mt-10 lg:mt-0">
+    <div class="absolute inset-0 bg-primary/20 blur-[100px] rounded-full translate-y-10 scale-125 -z-10"></div>
+    <div class="relative w-full h-full max-w-md">
+        <img src="assets/bg_sala_marmore.png" class="absolute inset-0 w-full h-full object-contain hero-img" style="animation-delay: 0s;">
+        <img src="assets/bg_sala_marrom.png" class="absolute inset-0 w-full h-full object-contain hero-img" style="animation-delay: 6s;">
+        <img src="assets/bg_gelo.png" class="absolute inset-0 w-full h-full object-contain hero-img" style="animation-delay: 12s;">
+        <img src="assets/bg_wifi.png" class="absolute inset-0 w-full h-full object-contain hero-img" style="animation-delay: 18s;">
+    </div>
 </div>
 </div>
 </section>
