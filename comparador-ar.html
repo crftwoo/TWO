@@ -1357,6 +1357,11 @@
       }
 
       unifiedAndSortedList.forEach(p => {
+        const cardWrapper = document.createElement('div');
+        cardWrapper.style.display = 'flex';
+        cardWrapper.style.flexDirection = 'column';
+        cardWrapper.style.gap = '8px';
+
         const card = document.createElement('div');
         card.className = 'visual-card';
 
@@ -1426,22 +1431,21 @@
         // --- BOTAO DE INTEGRACAO COM O SITE ---
         const pubBtn = document.createElement('button');
         pubBtn.innerText = "Enviar p/ Site 🚀";
-        pubBtn.style.position = 'absolute';
-        pubBtn.style.bottom = '10px';
-        pubBtn.style.right = '10px';
         pubBtn.style.background = '#8B5CF6'; // Violet
         pubBtn.style.color = '#fff';
         pubBtn.style.border = 'none';
-        pubBtn.style.padding = '6px 10px';
+        pubBtn.style.padding = '10px 10px';
         pubBtn.style.borderRadius = '6px';
         pubBtn.style.fontSize = '12px';
         pubBtn.style.fontWeight = 'bold';
         pubBtn.style.cursor = 'pointer';
-        pubBtn.style.zIndex = '10';
+        pubBtn.style.width = '100%';
         pubBtn.onclick = () => enviarProSite(p, pubBtn);
-        card.appendChild(pubBtn);
+        
+        cardWrapper.appendChild(card);
+        cardWrapper.appendChild(pubBtn);
 
-        container.appendChild(card);
+        container.appendChild(cardWrapper);
 
         // --- AÇÕES DO CLIQUE (Copiar) ---
         textBox.onclick = () => {
