@@ -190,8 +190,11 @@
                             const b2 = b1.replace(',', '.');
                             const b3 = b1.replace('.', ',');
                             if (lClean.includes(b1) || lClean.includes(b2) || lClean.includes(b3)) {
-                                const mMatch = l.match(/(\d+)\s*(m|metro|metros)/);
+                                // Remover ",00" para evitar problemas e extrair o numero que vem logo antes de "m" ou "metro"
+                                const lSemQuebrado = lClean.replace(/,00/g, '');
+                                const mMatch = lSemQuebrado.match(/(\\d+)(m|metro|metros|mt\\b|un\\b)/i);
                                 const qtd = mMatch ? parseInt(mMatch[1]) : qtdLinha;
+                                
                                 const chave = `cabo-${bitola}`;
                                 const existente = mapaItens.get(chave);
                                 mapaItens.set(chave, {
