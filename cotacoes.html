@@ -76,19 +76,23 @@
         const FITAS = {
             pvc: { n: "FITA PVC S/ADESIVO 100MMX10M BRANCA HULTER", p: 3.90 },
             iso: { n: "FITA ISOLANTE 18MM X 15M ANTICHAMA PRETA DUGOLD", p: 4.90 },
-            alu: { n: "FITA ALUMINIZADA 45MM X 45M HULTER", p: 4.95 }
+            alu: { n: "FITA ALUMINIZADA 45MM X 45M HULTER", p: 4.95 },
+            tape: { n: "FITA TAPE 48MM X 50M PRETA DUGOLD", p: 19.90 },
+            elastomerica: { n: "FITA EMENDAS ELASTOMERICA 45MMX3MMX10M-HULTER", p: 22.00 }
         };
         const CABOS = {
             "2x1,5": { n: "CABO PP 2X1,5MM 1KV 100M RCM", p: 5.50 },
             "3x1,5": { n: "CABO PP 3X1,5MM 1KV 100M RCM", p: 7.80 },
             "4x1,5": { n: "CABO PP 4X1,5MM 1KV 100M RCM", p: 9.80 },
             "5x1,5": { n: "CABO PP CONTROLE 5X1,5MM 1KV 100M RCM", p: 13.80 },
+            "5x2,5": { n: "CABO PP CONTROLE 5X2,5MM 1KV 100M RCM", p: 21.50 },
             "6x1,5": { n: "CABO PP CONTROLE 6X1,5MM 1KV 100M RCM", p: 21.70 }
         };
         const SUPORTES = {
             "400mm": { n: "Suporte Split Hulter 7 à 12.000 BTUs 400mm", p: 29.90 },
             "450mm": { n: "Suporte para Condensadora Barril 7000 a 12000 BTUS 450mm Hulter", p: 39.90 },
             "500mm": { n: "Suporte 50cm para Split 12000 a 24000 BTUs 80 kg 500mm Hulter", p: 49.90 },
+            "550mm": { n: "Suporte Split 550mm", p: 89.90 },
             "600mm": { n: "Suporte Split Barril 60 x 50 cm 18000 a 48000 BTUs 160 kg 600mm Hulter", p: 119.00 },
             "900mm": { n: "Suporte Split Hulter 18 à 60.000 BTUs 900mm x 600mm", p: 189.00 },
             "evap": { n: "Suporte Evaporadora Piso teto Hulter 30 à 80.000 BTUs 600mm x230mm x 200mm", p: 99.00 }
@@ -179,9 +183,11 @@
                     // 3. CABOS PP
                     if (!identificado) {
                         for (const bitola in CABOS) {
-                            const bNorm = bitola.replace(',', '.');
-                            const bEsp = bNorm.replace('x', 'x ');
-                            if (l.includes(bNorm) || l.includes(bEsp) || l.includes(bitola)) {
+                            const lClean = l.replace(/\\s+/g, '');
+                            const b1 = bitola.replace(/\\s+/g, '');
+                            const b2 = b1.replace(',', '.');
+                            const b3 = b1.replace('.', ',');
+                            if (lClean.includes(b1) || lClean.includes(b2) || lClean.includes(b3)) {
                                 const mMatch = l.match(/(\d+)\s*(m|metro|metros)/);
                                 const qtd = mMatch ? parseInt(mMatch[1]) : qtdLinha;
                                 const chave = `cabo-${bitola}`;
@@ -200,8 +206,12 @@
                     // 4. SUPORTES E CAIXAS
                     if (!identificado && l.includes('suporte')) {
                         let chaveSup = null;
+                        
+                        // Transforma "550m" em "550mm" para evitar erros de digitação do cliente
+                        let lSup = l.replace(/(\d+)m\b/g, '$1mm'); 
+                        
                         for (const key in SUPORTES) {
-                            if (l.includes(key)) {
+                            if (lSup.includes(key)) {
                                 chaveSup = key;
                                 break;
                             }
@@ -257,6 +267,25 @@
                             const chave = 'fita-iso';
                             const ex = mapaItens.get(chave);
                             mapaItens.set(chave, { nome: FITAS.iso.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdLinha, valorUnit: FITAS.iso.p, tipo: 'fita' });
+                            identificado = true;
+                        } else if (l.includes('elastom') || l.includes('emenda')) {
+                            const chave = 'fita-elastomerica';
+                            const ex = mapaItens.get(chave);
+                            mapaItens.set(chave, { nome: FITAS.elastomerica.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdLinha, valorUnit: FITAS.elastomerica.p, tipo: 'fita' });
+                            identificado = true;
+                        } else if (l.includes('tec tão') || l.includes('tape') || l.includes('silver') || l.includes('tectape')) {
+                            const mMatch = l.match(/(\d+)\s*(m|metro|metros)/);
+                            let qtdCalculada = qtdLinha;
+                            
+                            // Se pediu em metros, calcula a qtd de rolos necessários (1 rolo = 50m)
+                            if (mMatch) {
+                                let metros = parseInt(mMatch[1]);
+                                qtdCalculada = Math.ceil(metros / 50);
+                            }
+                            
+                            const chave = 'fita-tape';
+                            const ex = mapaItens.get(chave);
+                            mapaItens.set(chave, { nome: FITAS.tape.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdCalculada, valorUnit: FITAS.tape.p, tipo: 'fita' });
                             identificado = true;
                         }
                     }
