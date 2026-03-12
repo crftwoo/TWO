@@ -452,8 +452,8 @@
       tabs.style.display = "none";
     }
 
-    // Busca a data do último commit no GitHub
-    fetch("https://api.github.com/repos/crftwoo/TWO/commits/main")
+    // Busca a data do último commit no GitHub (com cache-bust)
+    fetch("https://api.github.com/repos/crftwoo/TWO/commits/main?v=" + new Date().getTime())
       .then(response => response.json())
       .then(data => {
         if (data && data.commit && data.commit.author && data.commit.author.date) {
@@ -465,7 +465,7 @@
             hour: '2-digit', minute: '2-digit', second: '2-digit'
           });
 
-          document.getElementById("lastUpdate").childNodes[0].nodeValue = `Última atualização do sistema: ${formattedDate} às ${formattedTime} `;
+          document.getElementById("lastUpdate").childNodes[0].nodeValue = `⚡️ Última atualização: ${formattedDate} às ${formattedTime} `;
           const commitMsg = data.commit.message || "Sem descrição.";
           document.getElementById("updateTooltip").textContent = `O que mudou: "${commitMsg}"`;
 
