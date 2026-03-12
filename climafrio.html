@@ -265,16 +265,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             const msgObj = encodeURIComponent(`Olá ClimaFrio, tenho interesse no anúncio do site: ${p.title} por ${p.spot}`);
             const wappLink = `https://wa.me/5541995406130?text=${msgObj}`;
 
-            // Determina a etiqueta Inverter ou Q/F
-            let badge = "Inverter";
-            if (p.title.toLowerCase().includes('quente/frio') || p.title.toLowerCase().includes('q/f')) badge = "Q/F";
-
             htmlFinal += `
             <a href="${wappLink}" target="_blank" class="bg-card-dark rounded-xl overflow-hidden border border-white/5 hover:border-primary/50 hover:-translate-y-1 transition-all flex flex-col group shadow-[0_4px_20px_rgba(0,0,0,0.5)] cursor-pointer">
                 
-                <div class="aspect-square bg-[#E5E7EB] p-5 relative flex items-center justify-center bg-white transition-colors">
-                    <img src="${p.image}" alt="${p.title}" class="object-contain mix-blend-multiply w-full h-full group-hover:scale-105 transition-transform duration-300"/>
-                    <span class="absolute top-4 left-4 bg-primary text-background-dark px-2 py-1 text-[10px] font-800 rounded uppercase tracking-widest">${badge}</span>
+                <div class="aspect-square relative flex items-center justify-center bg-white transition-colors overflow-hidden">
+                    <img src="${p.image}" alt="${p.title}" class="object-cover mix-blend-multiply w-full h-full group-hover:scale-105 transition-transform duration-300"/>
                 </div>
                 
                 <div class="p-5 flex flex-col flex-1">
