@@ -1,6 +1,15 @@
 [
   {
     "store": "Central Ar",
+    "title": "Ar Condicionado Split Hi Wall - Inverter R-32 - Fujitsu - Essencial - 12.000 BTUs - Frio - 220V",
+    "spot": "R$ 2.231,10 à vista",
+    "install": "ou R$ 2.479,00 em 10x de R$ 247,90",
+    "image": "https://castaticstorage.blob.core.windows.net/centralar/mds/produtos/fujitsu/inverter/10031/ambientadas/ambientada-ar-condicionado-fujtsu-thumb.jpg",
+    "_parsedPrice": 2231.1,
+    "data_insercao": "2026-03-12T03:23:31.313Z"
+  },
+  {
+    "store": "Central Ar",
     "title": "Ar Condicionado Split Hi Wall - Inverter R-32 - G-classic - Gree - 12.000 BTUs - Frio - 220V Monofásico",
     "spot": "R$ 1.862,10 à vista",
     "install": "ou R$ 2.069,00 em 10x de R$ 206,90",
