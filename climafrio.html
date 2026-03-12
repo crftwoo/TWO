@@ -265,39 +265,31 @@ document.addEventListener("DOMContentLoaded", async () => {
             const msgObj = encodeURIComponent(`Olá ClimaFrio, tenho interesse no anúncio do site: ${p.title} por ${p.spot}`);
             const wappLink = `https://wa.me/5541995406130?text=${msgObj}`;
 
-            // Determina a etiqueta e o emoji do ciclo 
-            let emojiCycle = "❄️";
-            let badge = "INVERTER";
-            if (p.title.toLowerCase().includes('quente/frio') || p.title.toLowerCase().includes('q/f')) {
-                badge = "Q/F";
-                emojiCycle = "🔥❄️";
-            }
-
-            // Determina a cor da loja igual ao comparador
-            let bgLoja = "#000"; let textLoja = "#fff";
-            let sn = p.store ? p.store.toLowerCase() : "";
-            if (sn.includes('dufrio')) { bgLoja = "#0038A8"; }
-            else if (sn.includes('leveros')) { bgLoja = "#56B141"; }
-            else if (sn.includes('central ar')) { bgLoja = "#ff5722"; }
+            // Determina a etiqueta Inverter ou Q/F
+            let badge = "Inverter";
+            if (p.title.toLowerCase().includes('quente/frio') || p.title.toLowerCase().includes('q/f')) badge = "Q/F";
 
             htmlFinal += `
-            <a href="${wappLink}" target="_blank" class="bg-[#18181B] rounded-[20px] overflow-hidden border border-white/5 hover:border-primary/50 transition-all flex flex-col relative block group hover:-translate-y-1 shadow-[0_10px_30px_rgba(0,0,0,0.5)] hover:shadow-[0_15px_40px_rgba(0,0,0,0.8)] min-h-[420px]">
+            <a href="${wappLink}" target="_blank" class="bg-card-dark rounded-xl overflow-hidden border border-white/5 hover:border-primary/50 hover:-translate-y-1 transition-all flex flex-col group shadow-[0_4px_20px_rgba(0,0,0,0.5)] cursor-pointer">
                 
-                <div class="aspect-square bg-white relative flex items-center justify-center p-8">
-                    <img src="${p.image}" alt="${p.title}" class="object-contain w-full h-full mix-blend-multiply group-hover:scale-105 transition-transform duration-300"/>
-                    <span style="background: var(--green); color: #000;" class="absolute top-4 left-4 text-background-dark px-3 py-1 text-[11px] font-900 rounded uppercase tracking-widest">${badge}</span>
+                <div class="aspect-square bg-[#E5E7EB] p-5 relative flex items-center justify-center bg-white transition-colors">
+                    <img src="${p.image}" alt="${p.title}" class="object-contain mix-blend-multiply w-full h-full group-hover:scale-105 transition-transform duration-300"/>
+                    <span class="absolute top-4 left-4 bg-primary text-background-dark px-2 py-1 text-[10px] font-800 rounded uppercase tracking-widest">${badge}</span>
                 </div>
                 
-                <div class="p-8 flex flex-col items-center text-center flex-1 pb-16">
-                    <h4 class="text-white font-900 text-[16px] mb-6 leading-snug tracking-tight">${emojiCycle} ${p.title}</h4>
-                    <div style="color: var(--green);" class="font-montserrat font-900 text-[20px] mb-2 leading-none">💰 ${p.spot}</div>
-                    <p class="text-slate-400 text-[13px] italic mb-4">💳 ${p.install}</p>
-                    <span class="text-slate-600 text-[11px] uppercase tracking-widest font-800 mt-auto">Oferta Relâmpago ✨</span>
-                </div>
-
-                <!-- Store Badge -->
-                <div class="absolute bottom-0 left-0 px-3 py-1.5 rounded-tr-xl rounded-bl-[20px] text-[10px] font-900 uppercase tracking-widest z-10" style="background-color: ${bgLoja}; color: ${textLoja};">
-                    ${p.store || "Parceiro"}
+                <div class="p-5 flex flex-col flex-1">
+                    <h4 class="text-slate-100 font-bold text-[15px] leading-tight mb-2">${p.title}</h4>
+                    <p class="text-slate-400 text-[12px] italic mb-4 flex-1">${p.install}</p>
+                    
+                    <div class="flex items-center justify-between mt-auto pt-4 border-t border-white/5">
+                        <div class="flex flex-col">
+                            <span class="text-slate-500 text-[10px] uppercase font-bold tracking-widest mb-1">Oferta Relâmpago</span>
+                            <span class="text-primary font-montserrat font-900 text-[18px] leading-none">${p.spot}</span>
+                        </div>
+                        <div class="bg-primary/10 text-primary p-2.5 rounded-lg group-hover:bg-primary group-hover:text-background-dark transition-colors flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[20px]">shopping_cart</span>
+                        </div>
+                    </div>
                 </div>
 
             </a>`;
