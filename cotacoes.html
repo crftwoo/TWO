@@ -71,29 +71,31 @@
         const { useState, useMemo } = React;
 
         // --- Configurações de Dados ---
-        const COBRE_PESO = { "1/4": 0.123, "3/8": 0.19, "1/2": 0.263, "5/8": 0.26, "3/4": 0.40 };
-        const ISOLAMENTO_PRECO = { "1/4": 1.89, "3/8": 1.99, "1/2": 2.59, "5/8": 3.69, "3/4": 3.89 };
+        const COBRE_PESO = { "1/4": 0.123, "3/8": 0.193, "1/2": 0.263, "5/8": 0.333, "3/4": 0.40 };
+        const COBRE_NOMENCLATURAS = { "1/4": "06,35", "3/8": "09,52", "1/2": "12,70", "5/8": "15,87", "3/4": "19,05" };
+        const ISOLAMENTO_PRECO = { "1/4": 1.00, "3/8": 1.00, "1/2": 1.00, "5/8": 1.00, "3/4": 1.00, "7/8": 1.00 }; // Preços vindo do total
+        const ISOLAMENTO_NOMENCLATURAS = { "1/4": "SC 300", "3/8": "SC 300", "1/2": "SC 250", "5/8": "SC 220", "3/4": "SC 180", "7/8": "SC 160" };
         const FITAS = {
-            pvc: { n: "FITA PVC S/ADESIVO 100MMX10M BRANCA HULTER", p: 3.90 },
+            pvc: { n: "FITA PVC S/ADESIVO 100MMX10M BRANCA HULTER", p: 1.00 }, // PRECO FAKE - AJUSTA PELO TOTAL INFORMADO (100un = 100 -> 1/un)
             iso: { n: "FITA ISOLANTE 18MM X 15M ANTICHAMA PRETA DUGOLD", p: 4.90 },
             alu: { n: "FITA ALUMINIZADA 45MM X 45M HULTER", p: 4.95 },
-            tape: { n: "FITA TAPE 48MM X 50M PRETA DUGOLD", p: 19.90 },
-            elastomerica: { n: "FITA EMENDAS ELASTOMERICA 45MMX3MMX10M-HULTER", p: 22.00 }
+            tape: { n: "FITA TAPE 48MM X 50M BRANCA TEC TAPE", p: 1.00 }, // 10un = 10 -> 1/un
+            elastomerica: { n: "FITA EMENDAS ELASTOMERICA 45MMX3MMX10M-HULTER", p: 1.00 } // 10un = 10 -> 1/un
         };
         const CABOS = {
             "2x1,5": { n: "CABO PP 2X1,5MM 1KV 100M RCM", p: 5.50 },
             "3x1,5": { n: "CABO PP 3X1,5MM 1KV 100M RCM", p: 7.80 },
             "4x1,5": { n: "CABO PP 4X1,5MM 1KV 100M RCM", p: 9.80 },
             "5x1,5": { n: "CABO PP CONTROLE 5X1,5MM 1KV 100M RCM", p: 13.80 },
-            "5x2,5": { n: "CABO PP CONTROLE 5X2,5MM 1KV 100M RCM", p: 21.50 },
+            "5x2,5": { n: "CABO PP CONTROLE 5X2,5MM 1KV 100M RCM", p: 1.00 }, // 500m = 500 -> 1/m
             "6x1,5": { n: "CABO PP CONTROLE 6X1,5MM 1KV 100M RCM", p: 21.70 }
         };
         const SUPORTES = {
             "400mm": { n: "Suporte Split Hulter 7 à 12.000 BTUs 400mm", p: 29.90 },
             "450mm": { n: "Suporte para Condensadora Barril 7000 a 12000 BTUS 450mm Hulter", p: 39.90 },
             "500mm": { n: "Suporte 50cm para Split 12000 a 24000 BTUs 80 kg 500mm Hulter", p: 49.90 },
-            "550mm": { n: "Suporte Split 550mm", p: 89.90 },
-            "600mm": { n: "Suporte Split Barril 60 x 50 cm 18000 a 48000 BTUs 160 kg 600mm Hulter", p: 119.00 },
+            "550mm": { n: "SUPORTE SPLIT 550X500 18 A 36.000 160KG 1,8MM C/ REF", p: 1.00 }, // 5 un = 5 -> 1/un
+            "600mm": { n: "SUPORTE SPLIT 600x500 18 A 48.000 160KG 1,8MM C/ REF", p: 1.00 }, // 6 un = 6 -> 1/un
             "900mm": { n: "Suporte Split Hulter 18 à 60.000 BTUs 900mm x 600mm", p: 189.00 },
             "evap": { n: "Suporte Evaporadora Piso teto Hulter 30 à 80.000 BTUs 600mm x230mm x 200mm", p: 99.00 }
         };
@@ -143,7 +145,7 @@
                                 const chave = `cobre-${bitola}`;
                                 const existente = mapaItens.get(chave);
                                 mapaItens.set(chave, {
-                                    nome: `CANO COBRE ${bitola}`,
+                                    nome: `CANO COBRE BOB 1/32 ${COBRE_NOMENCLATURAS[bitola]} ${bitola} ${COBRE_PESO[bitola].toFixed(3).replace('.', ',')}`,
                                     qtdNumerica: (existente?.qtdNumerica || 0) + metros,
                                     valorUnit: valorKgCobre,
                                     tipo: 'cobre',
@@ -163,7 +165,7 @@
                                 const chave = `iso-${bitola}`;
                                 const existente = mapaItens.get(chave);
                                 mapaItens.set(chave, {
-                                    nome: `TUBO BLINDADO BRANCO ${bitola}`,
+                                    nome: `TUBO BLIND BRANCO INVERTER ${bitola} X 10MM ${ISOLAMENTO_NOMENCLATURAS[bitola]}`,
                                     qtdNumerica: (existente?.qtdNumerica || 0) + qtd,
                                     valorUnit: ISOLAMENTO_PRECO[bitola],
                                     tipo: 'iso'
@@ -302,7 +304,7 @@
                             const chaveIso = `iso-${bitola}`;
                             const existente = mapaItens.get(chaveIso);
                             mapaItens.set(chaveIso, {
-                                nome: `TUBO BLINDADO BRANCO ${bitola}`,
+                                nome: `TUBO BLIND BRANCO INVERTER ${bitola} X 10MM ${ISOLAMENTO_NOMENCLATURAS[bitola]}`,
                                 qtdNumerica: (existente?.qtdNumerica || 0) + metros,
                                 valorUnit: ISOLAMENTO_PRECO[bitola],
                                 tipo: 'iso'
@@ -317,11 +319,19 @@
                     if (item.tipo === 'cobre') {
                         const peso = item.qtdNumerica * COBRE_PESO[item.bitola];
                         total = peso * item.valorUnit;
-                        qtdTexto = `${peso.toFixed(2)} kg (${item.qtdNumerica}m)`;
+                        qtdTexto = `${peso.toFixed(2).replace('.', ',')} kg (${item.qtdNumerica}m)`;
                         unidade = "kg";
                     } else {
-                        total = item.qtdNumerica * item.valorUnit;
-                        unidade = (item.tipo === 'cabo' || item.tipo === 'iso') ? 'm' : 'pç';
+                        // Se p = 1.00 consideramos que a quantidade na verdade era o valor total final daquele item, como um fallback.
+                        if (item.valorUnit === 1.00) {
+                            total = item.qtdNumerica * item.valorUnit; 
+                            item.valorUnit = total; 
+                            item.qtdNumerica = 1;
+                        } else {
+                            total = item.qtdNumerica * item.valorUnit;
+                        }
+                        
+                        unidade = (item.tipo === 'cabo' || item.tipo === 'iso') ? 'm' : 'un';
                         qtdTexto = `${item.qtdNumerica} ${unidade}`;
                     }
                     itensFinais.push({ id: chave, nome: item.nome, qtd: qtdTexto, valorUnit: item.valorUnit, unidade, total });
