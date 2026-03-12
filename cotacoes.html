@@ -325,16 +325,22 @@
                         qtdTexto = `${peso.toFixed(2).replace('.', ',')} kg (${item.qtdNumerica}m)`;
                         unidade = "kg";
                     } else {
-                        // Se p = 1.00 consideramos que a quantidade na verdade era o valor total final daquele item, como um fallback.
-                        if (item.valorUnit === 1.00) {
-                            total = item.qtdNumerica * item.valorUnit; 
-                            item.valorUnit = total; 
-                            item.qtdNumerica = 1;
+                        total = item.qtdNumerica * item.valorUnit; 
+                        
+                        // Se o preço base do item estava setado como 1.00 propositalmente nas constantes,
+                        // isso significa que o valor total bate 1:1 com a qtd, ou seja: 100un -> R$ 100,00 TOTAL.
+                        // Mas na tela, o preço unit final por item (ex: Fita e Isolamento) deve refletir: 
+                        // se a quantidade total era X e o total dá X, ele custou 1/un ou 1/m real.
+                        item.valorUnit = 1;
+
+                        if (item.tipo === 'cabo' || item.tipo === 'iso') {
+                            unidade = 'm';
+                        } else if (item.tipo === 'fita' || item.tipo === 'suporte') {
+                            unidade = 'un';
                         } else {
-                            total = item.qtdNumerica * item.valorUnit;
+                            unidade = 'pç';
                         }
                         
-                        unidade = (item.tipo === 'cabo' || item.tipo === 'iso') ? 'm' : 'un';
                         qtdTexto = `${item.qtdNumerica} ${unidade}`;
                     }
                     itensFinais.push({ id: chave, nome: item.nome, qtd: qtdTexto, valorUnit: item.valorUnit, unidade, total });
