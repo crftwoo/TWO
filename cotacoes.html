@@ -185,14 +185,14 @@
                     // 3. CABOS PP
                     if (!identificado) {
                         for (const bitola in CABOS) {
-                            const lClean = l.replace(/\\s+/g, '');
-                            const b1 = bitola.replace(/\\s+/g, '');
+                            const lClean = l.replace(/\s+/g, '');
+                            const b1 = bitola.replace(/\s+/g, '');
                             const b2 = b1.replace(',', '.');
                             const b3 = b1.replace('.', ',');
                             if (lClean.includes(b1) || lClean.includes(b2) || lClean.includes(b3)) {
                                 // Remover ",00" para evitar problemas e extrair o numero que vem logo antes de "m" ou "metro"
                                 const lSemQuebrado = lClean.replace(/,00/g, '');
-                                const mMatch = lSemQuebrado.match(/(\\d+)(m|metro|metros|mt\\b|un\\b)/i);
+                                const mMatch = lSemQuebrado.match(/(\d+)(m|metro|metros|mt\b|un\b)/i);
                                 const qtd = mMatch ? parseInt(mMatch[1]) : qtdLinha;
                                 
                                 const chave = `cabo-${bitola}`;
