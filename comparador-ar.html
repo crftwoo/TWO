@@ -1423,6 +1423,24 @@
         card.appendChild(textBox);
         card.appendChild(storeBadge);
 
+        // --- BOTAO DE INTEGRACAO COM O SITE ---
+        const pubBtn = document.createElement('button');
+        pubBtn.innerText = "Enviar p/ Site 🚀";
+        pubBtn.style.position = 'absolute';
+        pubBtn.style.bottom = '10px';
+        pubBtn.style.right = '10px';
+        pubBtn.style.background = '#8B5CF6'; // Violet
+        pubBtn.style.color = '#fff';
+        pubBtn.style.border = 'none';
+        pubBtn.style.padding = '6px 10px';
+        pubBtn.style.borderRadius = '6px';
+        pubBtn.style.fontSize = '12px';
+        pubBtn.style.fontWeight = 'bold';
+        pubBtn.style.cursor = 'pointer';
+        pubBtn.style.zIndex = '10';
+        pubBtn.onclick = () => enviarProSite(p, pubBtn);
+        card.appendChild(pubBtn);
+
         container.appendChild(card);
 
         // --- AÇÕES DO CLIQUE (Copiar) ---
@@ -1522,6 +1540,44 @@
         btnElement.innerText = "Texto Copiado! ✔️";
         setTimeout(() => btnElement.innerText = old, 3000);
       });
+    }
+
+    async function enviarProSite(produto, btnElement) {
+      const oldText = btnElement.innerText;
+      btnElement.innerText = "Enviando... ⏳";
+      btnElement.disabled = true;
+
+      try {
+        const resposta = await fetch("http://localhost:3000/adicionar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(produto)
+        });
+
+        const obj = await resposta.json();
+
+        if (resposta.status === 409) {
+          btnElement.innerText = "⚠️ Já está no Site!";
+          btnElement.style.background = "#F59E0B"; // Laranja
+        } else if (resposta.ok) {
+          btnElement.innerText = "✅ Publicado no Ar!";
+          btnElement.style.background = "#10B981"; // Verde
+        } else {
+          throw new Error(obj.erro || "Erro na API");
+        }
+      } catch (err) {
+        console.error(err);
+        btnElement.innerText = "❌ Falha. Motor ON?";
+        btnElement.style.background = "#EF4444"; // Vermelho
+      }
+
+      setTimeout(() => {
+        if (!btnElement.innerText.includes("✅") && !btnElement.innerText.includes("⚠️")) {
+          btnElement.innerText = oldText;
+          btnElement.style.background = "#8B5CF6";
+          btnElement.disabled = false;
+        }
+      }, 5000);
     }
 
   </script>
