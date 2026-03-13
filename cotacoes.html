@@ -111,6 +111,10 @@
             const [erros, setErros] = useState([]);
             const [copiado, setCopiado] = useState(false);
             const tableRef = React.useRef(null);
+            
+            const formatarMoeda = (valor) => {
+                return valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            };
 
             const totalGeral = useMemo(() => itens.reduce((acc, item) => acc + item.total, 0), [itens]);
 
@@ -484,11 +488,11 @@
                                                                 ))}
                                                             </td>
                                                             <td className="p-5 font-semibold text-center">
-                                                                <span className="text-zinc-400">R$ {item.valorUnit.toFixed(2)}</span>
+                                                                <span className="text-zinc-400">R$ {formatarMoeda(item.valorUnit)}</span>
                                                                 <span className="block text-[10px] text-zinc-600">/ {item.unidade}</span>
                                                             </td>
                                                             <td className="p-5 pr-6 text-right font-black text-white text-sm">
-                                                                R$ {item.total.toFixed(2)}
+                                                                R$ {formatarMoeda(item.total)}
                                                             </td>
                                                         </tr>
                                                     ))}
@@ -498,7 +502,7 @@
 
                                         <div className="bg-[#9BE20D] p-6 rounded-2xl flex justify-between items-center text-black shadow-lg">
                                             <span className="font-bold uppercase text-[10px]">Total Geral</span>
-                                            <span className="text-3xl font-black">R$ {totalGeral.toFixed(2)}</span>
+                                            <span className="text-3xl font-black">R$ {formatarMoeda(totalGeral)}</span>
                                         </div>
                                     </div>
                                 </div>
