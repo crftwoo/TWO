@@ -73,29 +73,29 @@
         // --- Configurações de Dados ---
         const COBRE_PESO = { "1/4": 0.123, "3/8": 0.193, "1/2": 0.263, "5/8": 0.333, "3/4": 0.40 };
         const COBRE_NOMENCLATURAS = { "1/4": "06,35", "3/8": "09,52", "1/2": "12,70", "5/8": "15,87", "3/4": "19,05" };
-        const ISOLAMENTO_PRECO = { "1/4": 1.00, "3/8": 1.00, "1/2": 1.00, "5/8": 1.00, "3/4": 1.00, "7/8": 1.00 }; // Preços vindo do total
+        const ISOLAMENTO_PRECO = { "1/4": 1.89, "3/8": 1.99, "1/2": 2.59, "5/8": 3.69, "3/4": 3.89, "7/8": 1.00 }; // Preço para 7/8 ainda não foi definido, usando 1.00 fdc
         const ISOLAMENTO_NOMENCLATURAS = { "1/4": "SC 300", "3/8": "SC 300", "1/2": "SC 250", "5/8": "SC 220", "3/4": "SC 180", "7/8": "SC 160" };
         const FITAS = {
-            pvc: { n: "FITA PVC S/ADESIVO 100MMX10M BRANCA HULTER", p: 1.00 }, // PRECO FAKE - AJUSTA PELO TOTAL INFORMADO (100un = 100 -> 1/un)
+            pvc: { n: "FITA PVC S/ADESIVO 100MMX10M BRANCA HULTER", p: 3.90 },
             iso: { n: "FITA ISOLANTE 18MM X 15M ANTICHAMA PRETA DUGOLD", p: 4.90 },
             alu: { n: "FITA ALUMINIZADA 45MM X 45M HULTER", p: 4.95 },
-            tape: { n: "FITA TAPE 48MM X 50M BRANCA TEC TAPE", p: 1.00 }, // 10un = 10 -> 1/un
-            elastomerica: { n: "FITA EMENDAS ELASTOMERICA 45MMX3MMX10M-HULTER", p: 1.00 } // 10un = 10 -> 1/un
+            tape: { n: "FITA TAPE 48MM X 50M BRANCA TEC TAPE", p: 19.90 },
+            elastomerica: { n: "FITA EMENDAS ELASTOMERICA 45MMX3MMX10M-HULTER", p: 22.00 }
         };
         const CABOS = {
             "2x1,5": { n: "CABO PP 2X1,5MM 1KV 100M RCM", p: 5.50 },
             "3x1,5": { n: "CABO PP 3X1,5MM 1KV 100M RCM", p: 7.80 },
             "4x1,5": { n: "CABO PP 4X1,5MM 1KV 100M RCM", p: 9.80 },
             "5x1,5": { n: "CABO PP CONTROLE 5X1,5MM 1KV 100M RCM", p: 13.80 },
-            "5x2,5": { n: "CABO PP CONTROLE 5X2,5MM 1KV 100M RCM", p: 1.00 }, // 500m = 500 -> 1/m
+            "5x2,5": { n: "CABO PP CONTROLE 5X2,5MM 1KV 100M RCM", p: 21.50 },
             "6x1,5": { n: "CABO PP CONTROLE 6X1,5MM 1KV 100M RCM", p: 21.70 }
         };
         const SUPORTES = {
             "400mm": { n: "Suporte Split Hulter 7 à 12.000 BTUs 400mm", p: 29.90 },
             "450mm": { n: "Suporte para Condensadora Barril 7000 a 12000 BTUS 450mm Hulter", p: 39.90 },
             "500mm": { n: "Suporte 50cm para Split 12000 a 24000 BTUs 80 kg 500mm Hulter", p: 49.90 },
-            "550mm": { n: "SUPORTE SPLIT 550X500 18 A 36.000 160KG 1,8MM C/ REF", p: 1.00 }, // 5 un = 5 -> 1/un
-            "600mm": { n: "SUPORTE SPLIT 600x500 18 A 48.000 160KG 1,8MM C/ REF", p: 1.00 }, // 6 un = 6 -> 1/un
+            "550mm": { n: "SUPORTE SPLIT 550X500 18 A 36.000 160KG 1,8MM C/ REF", p: 89.90 },
+            "600mm": { n: "SUPORTE SPLIT 600x500 18 A 48.000 160KG 1,8MM C/ REF", p: 119.00 },
             "900mm": { n: "Suporte Split Hulter 18 à 60.000 BTUs 900mm x 600mm", p: 189.00 },
             "evap": { n: "Suporte Evaporadora Piso teto Hulter 30 à 80.000 BTUs 600mm x230mm x 200mm", p: 99.00 }
         };
@@ -133,11 +133,11 @@
                     // 1. COBRE
                     for (const bitola in COBRE_PESO) {
                         if (l.includes(bitola) && (l.includes('cano') || l.includes('cobre') || l.includes('panq') || l.includes('panc'))) {
-                            const mMatch = l.match(/(\d+)\s*(m|metro|metros)/);
-                            const panMatch = l.match(/(panq|panc|panqueca)/);
+                            const mMatch = l.match(/(\d+(?:,\d+)?)\s*(m|metro|metros|mt\b)/i);
+                            const panMatch = l.match(/(panq|panc|panqueca)/i);
 
                             let metros = 0;
-                            if (mMatch) metros = parseInt(mMatch[1]);
+                            if (mMatch) metros = parseFloat(mMatch[1].replace(',', '.'));
                             else if (panMatch) metros = qtdLinha * 15;
                             else metros = qtdLinha;
 
@@ -161,7 +161,8 @@
                         let achouBitola = false;
                         for (const bitola in ISOLAMENTO_PRECO) {
                             if (l.includes(bitola) && (l.includes('tubo') || l.includes('esponjoso') || l.includes('blindado') || l.includes('isolante') || l.includes('isolamento'))) {
-                                const qtd = l.match(/(\d+)\s*(m|metro|metros)/) ? parseInt(l.match(/(\d+)\s*(m|metro|metros)/)[1]) : qtdLinha;
+                                const m = l.match(/(\d+(?:,\d+)?)\s*(m|metro|metros|mt\b)/i);
+                                const qtd = m ? parseFloat(m[1].replace(',', '.')) : qtdLinha;
                                 const chave = `iso-${bitola}`;
                                 const existente = mapaItens.get(chave);
                                 mapaItens.set(chave, {
@@ -185,16 +186,19 @@
                     // 3. CABOS PP
                     if (!identificado) {
                         for (const bitola in CABOS) {
-                            const lClean = l.replace(/\s+/g, '');
-                            const b1 = bitola.replace(/\s+/g, '');
-                            const b2 = b1.replace(',', '.');
-                            const b3 = b1.replace('.', ',');
-                            if (lClean.includes(b1) || lClean.includes(b2) || lClean.includes(b3)) {
-                                // Remover ",00" para evitar problemas e extrair o numero que vem logo antes de "m" ou "metro"
-                                const lSemQuebrado = lClean.replace(/,00/g, '');
-                                const mMatch = lSemQuebrado.match(/(\d+)(m|metro|metros|mt\b|un\b)/i);
-                                const qtd = mMatch ? parseInt(mMatch[1]) : qtdLinha;
+                            const lNormal = l.replace(/\s+/g, ' '); // Mantém espaços para não mesclar números
+                            const b1 = bitola; // Ex: "5x2,5"
+                            const b2 = bitola.replace(',', '.');
+                            
+                            // Regex que aceita bitola com ou sem espaços (ex: "5x2,5" ou "5 x 2,5")
+                            const regexBitola = new RegExp(bitola.replace(',', '[.,]').replace('x', '\\s*x\\s*'), 'i');
+                            
+                            if (regexBitola.test(l)) {
+                                // Para quantidade, remove a bitola do texto original para não confundir os números
+                                const textoSemBitola = l.replace(regexBitola, '').replace(/\s+/g, '');
+                                const mMatch = textoSemBitola.match(/(\d+(?:,\d+)?)(m|metro|metros|mt\b|un\b)/i);
                                 
+                                const qtd = mMatch ? parseFloat(mMatch[1].replace(',', '.')) : qtdLinha;
                                 const chave = `cabo-${bitola}`;
                                 const existente = mapaItens.get(chave);
                                 mapaItens.set(chave, {
@@ -327,12 +331,6 @@
                     } else {
                         total = item.qtdNumerica * item.valorUnit; 
                         
-                        // Se o preço base do item estava setado como 1.00 propositalmente nas constantes,
-                        // isso significa que o valor total bate 1:1 com a qtd, ou seja: 100un -> R$ 100,00 TOTAL.
-                        // Mas na tela, o preço unit final por item (ex: Fita e Isolamento) deve refletir: 
-                        // se a quantidade total era X e o total dá X, ele custou 1/un ou 1/m real.
-                        item.valorUnit = 1;
-
                         if (item.tipo === 'cabo' || item.tipo === 'iso') {
                             unidade = 'm';
                         } else if (item.tipo === 'fita' || item.tipo === 'suporte') {
