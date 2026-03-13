@@ -236,11 +236,14 @@
                         }
 
                         if (chaveSup) {
+                            const mUn = l.match(/(\d+(?:,\d+)?)\s*(un|u|pç)/i);
+                            const qtdSup = mUn ? parseFloat(mUn[1].replace(',', '.')) : qtdLinha;
+
                             const chave = `sup-${chaveSup}`;
                             const existente = mapaItens.get(chave);
                             mapaItens.set(chave, {
                                 nome: SUPORTES[chaveSup].n,
-                                qtdNumerica: (existente?.qtdNumerica || 0) + qtdLinha,
+                                qtdNumerica: (existente?.qtdNumerica || 0) + qtdSup,
                                 valorUnit: SUPORTES[chaveSup].p,
                                 tipo: 'suporte'
                             });
@@ -271,34 +274,37 @@
 
                     // 5. FITAS
                     if (!identificado) {
+                        const mUn = l.match(/(\d+(?:,\d+)?)\s*(un|u|mt|m|pç)/i);
+                        const qtdFita = mUn ? parseFloat(mUn[1].replace(',', '.')) : qtdLinha;
+
                         if (l.includes('pvc')) {
                             const chave = 'fita-pvc';
                             const ex = mapaItens.get(chave);
-                            mapaItens.set(chave, { nome: FITAS.pvc.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdLinha, valorUnit: FITAS.pvc.p, tipo: 'fita' });
+                            mapaItens.set(chave, { nome: FITAS.pvc.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdFita, valorUnit: FITAS.pvc.p, tipo: 'fita' });
                             identificado = true;
                         } else if ((l.includes('isolante') || l.includes('fita iso')) && !l.includes('tubo') && !l.includes('isolamento')) {
                             const chave = 'fita-iso';
                             const ex = mapaItens.get(chave);
-                            mapaItens.set(chave, { nome: FITAS.iso.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdLinha, valorUnit: FITAS.iso.p, tipo: 'fita' });
+                            mapaItens.set(chave, { nome: FITAS.iso.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdFita, valorUnit: FITAS.iso.p, tipo: 'fita' });
                             identificado = true;
                         } else if (l.includes('elastom') || l.includes('emenda')) {
                             const chave = 'fita-elastomerica';
                             const ex = mapaItens.get(chave);
-                            mapaItens.set(chave, { nome: FITAS.elastomerica.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdLinha, valorUnit: FITAS.elastomerica.p, tipo: 'fita' });
+                            mapaItens.set(chave, { nome: FITAS.elastomerica.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdFita, valorUnit: FITAS.elastomerica.p, tipo: 'fita' });
                             identificado = true;
                         } else if (l.includes('tec tão') || l.includes('tape') || l.includes('silver') || l.includes('tectape')) {
-                            const mMatch = l.match(/(\d+)\s*(m|metro|metros)/);
-                            let qtdCalculada = qtdLinha;
+                            let qtdFinalTape = qtdFita;
+                            const mMetros = l.match(/(\d+)\s*(m|metro|metros|mt\b)/i);
                             
-                            // Se pediu em metros, calcula a qtd de rolos necessários (1 rolo = 50m)
-                            if (mMatch) {
-                                let metros = parseInt(mMatch[1]);
-                                qtdCalculada = Math.ceil(metros / 50);
+                            // Se pediu em metros (ex: 200mt de fita), calcula a qtd de rolos necessários (1 rolo = 50m)
+                            if (mMetros && !l.includes('un')) {
+                                let metros = parseInt(mMetros[1]);
+                                qtdFinalTape = Math.ceil(metros / 50);
                             }
                             
                             const chave = 'fita-tape';
                             const ex = mapaItens.get(chave);
-                            mapaItens.set(chave, { nome: FITAS.tape.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdCalculada, valorUnit: FITAS.tape.p, tipo: 'fita' });
+                            mapaItens.set(chave, { nome: FITAS.tape.n, qtdNumerica: (ex?.qtdNumerica || 0) + qtdFinalTape, valorUnit: FITAS.tape.p, tipo: 'fita' });
                             identificado = true;
                         }
                     }
